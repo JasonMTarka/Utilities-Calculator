@@ -1,21 +1,10 @@
-# import datetime
-from random import randint, choice
+from datetime import datetime
+import sqlite3
 
 
 class Application:
-    def __init__(self):
-        self.gas = Utility("Gas")
-        self.rent = Utility("Rent")
-        self.electric = Utility("Electric")
-        self.water = Utility("Water")
-        self.utilities = {'gas': self.gas,
-                          'rent': self.rent,
-                          'electric': self.electric,
-                          'water': self.water}
-
-        self.__tester__()
-        self.jason_owes, self.xiaochen_owes = self.calculate_amount_owed()
-        # self.current_date = datetime.datetime()
+    def __init__(self, db):
+        self.db = db
 
     def __repr__(self):
         return f"Application()"
@@ -23,59 +12,68 @@ class Application:
     def __str__(self):
         return "Primary application"
 
-    def __tester__(self):
-        for _ in range(3):
-            self.gas.record.append(Bill('gas', randint(2000, 4000), choice(["04-21", "01-21", "03-21", "02-21", "05-21"]), note="Xiaochen loves poop"))
-            self.rent.record.append(Bill('rent', 94000, choice(["04-21", "01-21", "03-21", "02-21", "05-21"]), note="Xiaochen loves poop"))
-            self.water.record.append(Bill('water', randint(5000, 6000), choice(["04-21", "01-21", "03-21", "02-21", "05-21"]), note="Xiaochen loves poop"))
-            self.electric.record.append(Bill('electric', randint(7000, 8000), choice(["04-21", "01-21", "03-21", "02-21", "05-21"]), note="Xiaochen loves poop"))
+    @property
+    def jason_owes(self):
+        return self.db.get_total_owed("jason")
 
-    def calculate_amount_owed(self):
-        j_collector = 0
-        x_collector = 0
+    @property
+    def xiaochen_owes(self):
+        return self.db.get_total_owed("xiaochen")
 
-        for utility in self.utilities.values():
-            for bill in utility.unpaid_bills():
-                if bill.jason_paid is False:
-                    j_collector += bill.owed_amount
-                if bill.xiaochen_paid is False:
-                    x_collector += bill.owed_amount
-        return (j_collector, x_collector)
+    @property
+    def today(self):
+        return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
     def main_menu(self):
         print()
         print("Welcome to Jason and Xiaochen's utility calculator.")
-        print(f"Today is PLACEHOLDER.")
+        print(f"Today is {self.today}")
         print(f"Jason currently owes {self.jason_owes} yen and Xiaochen currently owes {self.xiaochen_owes} yen.")
 
         print()
-        print("What utility would you like to view?")
-        print("Enter 'Rent', 'Gas', 'Electric', or 'Water':")
-        utility_intent = input().lower()
-        if utility_intent not in {'rent', 'gas', 'electric', 'water'}:
-            print(f"{utility_intent} is not one of our bills.  Check your spelling and try again.")
+        print("You can examine a particular utility or either Jason or Xiaochen's payment history.")
+        print("Enter 'Rent', 'Gas', 'Electric', 'Water', 'Jason', or 'Xiaochen':")
+        intent = input().lower()
+        print()
+        if intent not in {'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'}:
+            print(f"{intent} is not a valid input.  Check your spelling and try again.")
             self.main_menu()
 
-        print()
-        print(f"What would you like to do with {utility_intent}?")
-        print()
-        print("'add bill' - Add a new bill.")
-        print("'check record' - Check a utility record.")
-        print("'check unpaid bills' - Check unpaid bills for a given utility.")
-        print("'pay bill' - Pay an outstanding bill.")
-        intent = input().lower()
+        if intent in {'rent', 'gas', 'electric', 'water'}:
+            print(f"What would you like to do with {intent}?")
+            print()
+            print("'add bill' - Add a new bill.")
+            print("'check record' - Check a utility record.")
+            print("'check unpaid bills' - Check unpaid bills for a given utility.")
+            print("'pay bill' - Pay an outstanding bill.")
+            utility_intent = input().lower()
 
-        if intent == 'add bill':
-            self.add_bill(utility_intent)
+            if utility_intent == 'add bill':
+                self.add_bill(intent)
 
-        if intent == 'check record':
-            self.check_record(utility_intent)
+            if utility_intent == 'check record':
+                self.check_record(intent)
 
-        if intent == 'check unpaid bills':
-            self.check_unpaid_bills(utility_intent)
+            if utility_intent == 'check unpaid bills':
+                self.check_unpaid_bills(intent)
 
-        if intent == 'pay bill':
-            self.pay_bill(utility_intent)
+            if utility_intent == 'pay bill':
+                self.pay_bill(intent)
+
+        else:
+            if intent == "jason":
+                print("Jason owes ", self.db.get_total_owed("jason"))
+                print("Here are his unpaid bills:")
+                for entry in self.db.get_bills_owed("jason"):
+                    print(entry)
+                self.main_menu()
+
+            else:
+                print("Xiaochen owes ", self.db.get_total_owed("xiaochen"))
+                print("Here are her unpaid bills:")
+                for entry in self.db.get_bills_owed("xiaochen"):
+                    print(entry)
+                self.main_menu()
 
     def add_bill(self, utility):
         print()
@@ -114,28 +112,30 @@ class Application:
             else:
                 j_intent = False
 
-            bill = Bill(utility, amount_intent, date_intent, xiaochen_paid=x_intent, jason_paid=j_intent, paid=paid_intent, note=note_intent)
+            bill = Bill(utility, date_intent, amount_intent, xiaochen_paid=x_intent, jason_paid=j_intent, paid=paid_intent, note=note_intent)
 
         else:
             print("Creating bill...")
-            bill = Bill(utility, amount_intent, date_intent)
+            bill = Bill(utility, date_intent, amount_intent)
 
-        self.utilities[bill.utility].record.append(bill)
+        self.db.add_bill(bill)
         print(f"Bill has been successfully created and added to the {bill.utility} bill record!")
         self.main_menu()
 
     def check_record(self, utility):
-        for entry in self.utilities[utility].record:
-            print(entry)
+        for record in self.db.get_utility_record(utility):
+            print(record)
         self.main_menu()
 
     def check_unpaid_bills(self, utility):
-        for entry in self.utilities[utility].record:
+        for entry in self.db.get_utility_record(utility):
             if entry.paid is False:
                 print(entry)
 
+        self.main_menu()
+
     def pay_bill(self, utility):
-        record = self.utilities[utility].record
+        record = self.db.get_utility_record(utility)
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
         identity = input().lower()
@@ -152,9 +152,9 @@ class Application:
 
         print("Which bill would you like to pay?")
         print("Enter the bill's ID:")
-        intent = input().lower()
+        intent = input()
         for entry in record:
-            if entry.ID == int(intent):
+            if entry.id == int(intent):
                 print(entry)
                 print(f"You owe {entry.owed_amount} yen.")
                 print(f"Will you pay your bill?")
@@ -163,68 +163,67 @@ class Application:
                 if intent == "yes":
                     if identity == 'jason':
                         entry.jason_paid = True
-                        self.utilities[utility].payment_log.append((f"Jason paid {entry.owed_amount} for bill (ID {entry.ID}) on PLACEHOLDER, paying off his portion of the bill."))
-                        self.jason_owes -= entry.owed_amount
+                        entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
+                        self.db.pay_bill(entry)
 
                     elif identity == 'xiaochen':
                         entry.xiaochen_paid = True
-                        self.utilities[utility].payment_log.append((f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.ID}) on PLACEHOLDER, paying off her portion of the bill."))
-                        self.xiaochen_owes -= entry.owed_amount
+                        self.db.pay_bill(entry)
+                        self.utilities[utility].payment_log.append((f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."))
 
                     if entry.jason_paid is True and entry.xiaochen_paid is True:
                         entry.paid = True
                         print("This bill has been completely paid off!")
 
+                    print("You successfully paid your bill!")
                     print("Returning to main menu...")
                     self.main_menu()
         print("Not a valid bill ID.")
         self.main_menu()
 
 
-class Utility:
-
-    def __init__(self, name, payment_method="Credit Card"):
-        self.name = name
-        self.record = []
-        self.payment_log = []
-        self.last_payment = []
-        self.payment_method = payment_method
-
-    def __repr__(self):
-        return f"Utility({self.name})"
-
-    def __str__(self):
-        return f"{self.name}"
-
-    def unpaid_bills(self):
-        collector = []
-        for entry in self.record:
-            if entry.paid is False:
-                collector.append(entry)
-        return collector
-
-
 class Bill:
 
     ID = 0
 
-    def __init__(self, utility, amount, date, xiaochen_paid=True, jason_paid=False, paid=False, note=""):
+    def __init__(self, utility, date, amount, xiaochen_paid=True, jason_paid=False, paid=False, note=""):
+
         self.utility = utility
         self.amount = amount
+        self.owed_amount = int(amount) / 2
         self.date = date
-        self.xiaochen_paid = xiaochen_paid
-        self.jason_paid = jason_paid
-        self.paid = paid
+
+        if xiaochen_paid == 1:
+            self.xiaochen_paid = True
+        elif xiaochen_paid == 0:
+            self.xiaochen_paid = False
+        else:
+            self.xiaochen_paid = xiaochen_paid
+
+        if jason_paid == 1:
+            self.jason_paid = True
+        elif jason_paid == 0:
+            self.jason_paid = False
+        else:
+            self.jason_paid = jason_paid
+
+        if paid == 1:
+            self.paid = True
+        elif paid == 0:
+            self.paid = False
+        else:
+            self.paid = paid
+
         self.note = note
 
-        self.owed_amount = amount / 2
-        self.ID = Bill.ID
+        self.id = Bill.ID
         Bill.ID += 1
 
     def __repr__(self):
         return f"""
-            Bill({self.utility}, {self.amount}, {self.date},
-            xiaochen_paid={self.xiaochen_paid}, jason_paid={self.jason_paid})
+            Bill({self.utility}, {self.date}, {self.amount},
+            xiaochen_paid={self.xiaochen_paid}, jason_paid={self.jason_paid},
+            paid={self.paid}, note={self.note})
             """
 
     def __str__(self):
@@ -239,15 +238,146 @@ class Bill:
             j = "not paid yet"
 
         return f"""
-            A {self.utility} bill for {self.amount} for {self.date}.
+            A {self.utility} bill for {self.amount} yen for {self.date}.
             Xiaochen has {x} and Jason has {j}.
-            ID: {self.ID}
+            ID: {self.id}
             Notes: {self.note}
             """
 
 
+class Database:
+    def __init__(self):
+        self.conn = sqlite3.connect(":memory:")
+        self.c = self.conn.cursor()
+        self.c.execute("""
+                CREATE TABLE bills (
+                id integer,
+                utility text,
+                date text,
+                amount integer,
+                x_paid boolean,
+                j_paid boolean,
+                paid boolean,
+                note text
+                )""")
+
+        bills = [
+
+            Bill("gas", "07-20", 2120, jason_paid=True, paid=True),
+            Bill("gas", "08-20", 4350, jason_paid=True, paid=True),
+            Bill("gas", "09-20", 3471, jason_paid=True, paid=True, note="Paid October 4th 2020"),
+            Bill("gas", "10-20", 3498, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
+            Bill("gas", "11-20", 2492, jason_paid=True, paid=True, note="Paid by Hakone hotel"),
+            Bill("gas", "12-20", 4088),
+            Bill("gas", "01-21", 4965),
+            Bill("gas", "02-21", 5022),
+            Bill("gas", "03-21", 6523),
+
+            Bill("electric", "05-20", 580, jason_paid=True, paid=True),
+            Bill("electric", "06-20", 5970, jason_paid=True, paid=True),
+            Bill("electric", "07-20", 7029, jason_paid=True, paid=True),
+            Bill("electric", "08-20", 8375, jason_paid=True, paid=True, note="Paid October 4th 2020"),
+            Bill("electric", "09-20", 9321, jason_paid=True, paid=True, note="Paid October 4th 2020"),
+            Bill("electric", "10-20", 5345, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
+            Bill("electric", "11-20", 5251, jason_paid=True, paid=True, note="Paid November 28th by Hakone hotel"),
+            Bill("electric", "12-20", 4523, jason_paid=True, paid=True, note="Paid January 12th 2021"),
+            Bill("electric", "01-21", 5852, jason_paid=True, paid=True, note="Paid March 1st 2021"),
+            Bill("electric", "02-21", 5054),
+
+            Bill("water", "06-20", 2477, jason_paid=True, paid=True),
+            Bill("water", "07-20,08-20", 7411, jason_paid=True, paid=True),
+            Bill("water", "09-20,10-20", 6364, jason_paid=True, paid=True, note="Paid October 4th 2020"),
+            Bill("water", "11-20,12-20", 7673, jason_paid=True, paid=True, note="Paid January 12th 2021"),
+            Bill("water", "01-21,02-21", 8197, jason_paid=True, paid=True, note="Paid March 1st 2021"),
+            Bill("water", "03-21,04-21", 8720),
+
+            Bill("rent", "05-20", 94000, jason_paid=True, paid=True),
+            Bill("rent", "06-20", 94000, jason_paid=True, paid=True),
+            Bill("rent", "07-20", 94000, jason_paid=True, paid=True),
+            Bill("rent", "08-20", 94000, jason_paid=True, paid=True),
+            Bill("rent", "09-20", 94000, jason_paid=True, paid=True),
+            Bill("rent", "10-20", 94000, jason_paid=True, paid=True, note="Paid October 4th 2020"),
+            Bill("rent", "11-20", 94000, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
+            Bill("rent", "12-20", 94000, jason_paid=True, paid=True, note="Paid by Hakone hotel"),
+            Bill("rent", "01-21", 94000, jason_paid=True, paid=True, note="Paid January 12th 2021"),
+            Bill("rent", "02-21", 94000, jason_paid=True, paid=True, note="Paid March 1st 2021"),
+            Bill("rent", "03-21", 94000, jason_paid=True, paid=True, note="Paid March 1st 2021"),
+            Bill("rent", "04-21", 94000)
+        ]
+
+        for bill in bills:
+            self.add_bill(bill)
+
+    def add_bill(self, bill):
+        with self.conn:
+            self.c.execute("INSERT INTO bills VALUES (:id, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
+                           {"id": bill.id, "utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.xiaochen_paid, "j_paid": bill.jason_paid, "paid": bill.paid, "note": bill.note})
+
+    def remove_bill(self, bill):
+        with self.conn:
+            self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
+
+    def pay_bill(self, bill):
+        with self.conn:
+            self.c.execute("""
+                UPDATE bills
+                SET x_paid = :xiaochen_paid,
+                    j_paid = :jason_paid,
+                    paid = :paid,
+                    note = :note
+                WHERE id = :id
+                """, {"xiaochen_paid": bill.xiaochen_paid, "jason_paid": bill.jason_paid, "paid": bill.paid, "id": bill.id, "note": bill.note})
+
+    def get_all_records(self):
+        self.c.execute("SELECT * FROM bills")
+        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
+        return collector
+
+    def get_utility_record(self, utility):
+        self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
+        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
+        return collector
+
+    def get_unpaid_bills(self):
+        self.c.execute("SELECT * FROM bills WHERE paid=False")
+        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
+        return collector
+
+    def get_paid_bills(self):
+        self.c.execute("SELECT * FROM bills WHERE paid=True")
+        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
+        return collector
+
+    def get_bills_owed(self, person):
+        if person == "jason":
+            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
+        else:
+            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
+
+        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
+        return collector
+
+    def get_total_owed(self, person):
+        if person == "jason":
+            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
+        else:
+            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
+        records = self.c.fetchall()
+        holder = 0
+        for bill in records:
+            holder += int(bill[3]) / 2
+        return holder
+
+    def _convert_to_object(self, record):
+        bill = Bill(record[1], record[2], record[3], xiaochen_paid=record[4], jason_paid=record[5], paid=record[6], note=record[7])
+        bill.id = record[0]
+        Bill.ID -= 1  # Correcting to avoid ID class variable from growing too much
+        return bill
+
 def main():
-    app = Application()
+
+    db = Database()
+    app = Application(db)
     app.main_menu()
 
 

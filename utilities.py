@@ -1,16 +1,13 @@
 from datetime import datetime
-import sqlite3
+from os import system
+
+from bill import Bill
+from database import Database
 
 
 class Application:
     def __init__(self, db):
         self.db = db
-
-    def __repr__(self):
-        return f"Application()"
-
-    def __str__(self):
-        return "Primary application"
 
     @property
     def jason_owes(self):
@@ -22,18 +19,26 @@ class Application:
 
     @property
     def today(self):
-        return datetime.today().strftime('%B %d, %Y at %I:%M %p')
+        return datetime.today().strftime('%B %d, %Y at %I:%M %p.')
 
-    def main_menu(self):
+    def intro(self):
+        system('cls')
         print()
         print("Welcome to Jason and Xiaochen's utility calculator.")
         print(f"Today is {self.today}")
-        print(f"Jason currently owes {self.jason_owes} yen and Xiaochen currently owes {self.xiaochen_owes} yen.")
+        self.main_menu()
 
+    def main_menu(self):
+        print()
+        print(f"Jason currently owes {self.jason_owes} yen and Xiaochen currently owes {self.xiaochen_owes} yen.")
         print()
         print("You can examine a particular utility or either Jason or Xiaochen's payment history.")
         print("Enter 'Rent', 'Gas', 'Electric', 'Water', 'Jason', or 'Xiaochen':")
+        print()
+        print("You can return to this page by entering 'main' at any point.")
         intent = input().lower()
+        if intent == 'main':
+            self.main_menu()
         print()
         if intent not in {'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'}:
             self._input_handler()
@@ -48,6 +53,9 @@ class Application:
             print("'remove bill' - Remove a bill.")
 
             utility_intent = input().lower()
+
+            if utility_intent == 'main':
+                self.main_menu()
 
             if utility_intent == 'add bill':
                 self.add_bill(intent)
@@ -91,6 +99,8 @@ class Application:
         print("How much is the bill for?")
         print("Enter the amount in yen:")
         amount_intent = input().lower()
+        if amount_intent == 'main':
+            self.main_menu()
         try:
             amount_intent = int(amount_intent)
         except ValueError:
@@ -100,24 +110,33 @@ class Application:
         print("Enter the bill date like the following: '04-21' for April 9th.")
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
         date_intent = input().lower()
+        if date_intent == 'main':
+            self.main_menu()
 
         print("Is there anything more you'd like to add?")
         moreinfo_intent = input("Enter 'yes' or 'no'.").lower()
-
+        if moreinfo_intent == 'main':
+            self.main_menu()
         if moreinfo_intent == "yes":
 
             print("Has Xiaochen paid?")
             x_intent = input("Enter 'yes' or 'no'.").lower()
+            if x_intent == 'main':
+                self.main_menu()
             if x_intent not in {"yes", "no"}:
                 print("Please enter 'yes' or 'no'.")
                 self.add_bill(utility)
             print("Has Jason paid?")
             j_intent = input("Enter 'yes' or 'no'.").lower()
+            if j_intent == 'main':
+                self.main_menu()
             if j_intent not in {"yes", "no"}:
                 print("Please enter 'yes' or 'no'.")
                 self.add_bill(utility)
             print("Has the bill been fully paid?")
             paid_intent = input("Enter 'yes' or 'no'.").lower()
+            if paid_intent == 'main':
+                self.main_menu()
             if paid_intent not in {"yes", "no"}:
                 print("Please enter 'yes' or 'no'.")
                 self.add_bill(utility)
@@ -155,6 +174,8 @@ class Application:
         print("Which bill would you like to remove?")
         print("Input bill ID:")
         intent = input().lower()
+        if intent == 'main':
+            self.main_menu()
         try:
             intent = int(intent)
         except ValueError:
@@ -165,9 +186,11 @@ class Application:
                 print(entry)
                 print(f"Will you remove this bill?")
                 intent = input("Type 'yes' or 'no'.").lower()
+                if intent == 'main':
+                    self.main_menu()
                 if intent == "yes":
                     self.db.remove_bill(entry)
-                    self._input_handler()
+                    self._input_handler(message=None)
                 else:
                     self._input_handler(message="Returning to main menu.")
 
@@ -189,6 +212,8 @@ class Application:
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
         identity = input().lower()
+        if identity == 'main':
+            self.main_menu()
 
         if identity == "xiaochen":
             for entry in records:
@@ -207,6 +232,8 @@ class Application:
         print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
         print("Enter the ID:")
         intent = input().lower()
+        if intent == 'main':
+            self.main_menu()
 
         intent_list = intent.split(" ")
         print(intent_list)
@@ -217,6 +244,8 @@ class Application:
                     print(f"You owe {entry.owed_amount} yen.")
                     print(f"Will you pay your bill?")
                     intent = input("Type 'yes' or 'no'.").lower()
+                    if intent == 'main':
+                        self.main_menu()
 
                     if intent == "yes":
                         if identity == 'jason':
@@ -280,150 +309,11 @@ class Application:
             self.main_menu()
 
 
-class Bill:
-
-    ID = 0
-
-    def __init__(self, utility, date, amount, xiaochen_paid=True, jason_paid=False, paid=False, note=""):
-
-        self.utility = utility
-        self.amount = amount
-        self.owed_amount = int(amount) / 2
-        self.date = date
-
-        if xiaochen_paid == 1:
-            self.xiaochen_paid = True
-        elif xiaochen_paid == 0:
-            self.xiaochen_paid = False
-        else:
-            self.xiaochen_paid = xiaochen_paid
-
-        if jason_paid == 1:
-            self.jason_paid = True
-        elif jason_paid == 0:
-            self.jason_paid = False
-        else:
-            self.jason_paid = jason_paid
-
-        if paid == 1:
-            self.paid = True
-        elif paid == 0:
-            self.paid = False
-        else:
-            self.paid = paid
-
-        self.note = note
-
-        self.id = Bill.ID
-        Bill.ID += 1
-
-    def __repr__(self):
-        return f"""
-            Bill({self.utility}, {self.date}, {self.amount},
-            xiaochen_paid={self.xiaochen_paid}, jason_paid={self.jason_paid},
-            paid={self.paid}, note={self.note})
-            """
-
-    def __str__(self):
-        if self.xiaochen_paid is True:
-            x = "paid"
-        else:
-            x = "not paid yet"
-
-        if self.jason_paid is True:
-            j = "paid"
-        else:
-            j = "not paid yet"
-
-        return f"""
-            A {self.utility} bill for {self.amount} yen for {self.date}.
-            Xiaochen has {x} and Jason has {j}.
-            ID: {self.id}
-            Notes: {self.note}
-            """
-
-
-class Database:
-    def __init__(self):
-        self.conn = sqlite3.connect("records.db")
-        self.c = self.conn.cursor()
-
-    def add_bill(self, bill):
-        with self.conn:
-            self.c.execute("INSERT INTO bills VALUES (:id, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
-                           {"id": bill.id, "utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.xiaochen_paid, "j_paid": bill.jason_paid, "paid": bill.paid, "note": bill.note})
-
-    def remove_bill(self, bill):
-        with self.conn:
-            self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
-
-    def pay_bill(self, bill):
-        with self.conn:
-            self.c.execute("""
-                UPDATE bills
-                SET x_paid = :xiaochen_paid,
-                    j_paid = :jason_paid,
-                    paid = :paid,
-                    note = :note
-                WHERE id = :id
-                """, {"xiaochen_paid": bill.xiaochen_paid, "jason_paid": bill.jason_paid, "paid": bill.paid, "id": bill.id, "note": bill.note})
-
-    def pay_multiple_bills(self, bill_list):
-        with self.conn:
-            for bill in bill_list:
-                self.pay_bill(bill)
-
-    def get_all_records(self):
-        self.c.execute("SELECT * FROM bills")
-        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
-        return collector
-
-    def get_utility_record(self, utility):
-        self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
-        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
-        return collector
-
-    def get_unpaid_bills(self):
-        self.c.execute("SELECT * FROM bills WHERE paid=False")
-        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
-        return collector
-
-    def get_paid_bills(self):
-        self.c.execute("SELECT * FROM bills WHERE paid=True")
-        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
-        return collector
-
-    def get_bills_owed(self, person):
-        if person == "jason":
-            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
-        else:
-            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
-
-        collector = [self._convert_to_object(record) for record in self.c.fetchall()]
-        return collector
-
-    def get_total_owed(self, person):
-        if person == "jason":
-            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
-        else:
-            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
-        records = self.c.fetchall()
-        holder = 0
-        for bill in records:
-            holder += int(bill[3]) / 2
-        return holder
-
-    def _convert_to_object(self, record):
-        bill = Bill(record[1], record[2], record[3], xiaochen_paid=record[4], jason_paid=record[5], paid=record[6], note=record[7])
-        bill.id = record[0]
-        Bill.ID -= 1  # Correcting to avoid ID class variable from growing too much
-        return bill
-
 def main():
 
     db = Database()
     app = Application(db)
-    app.main_menu()
+    app.intro()
 
 
 if __name__ == "__main__":

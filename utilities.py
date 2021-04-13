@@ -345,66 +345,8 @@ class Bill:
 
 class Database:
     def __init__(self):
-        self.conn = sqlite3.connect(":memory:")
+        self.conn = sqlite3.connect("records.db")
         self.c = self.conn.cursor()
-        self.c.execute("""
-                CREATE TABLE bills (
-                id integer,
-                utility text,
-                date text,
-                amount integer,
-                x_paid boolean,
-                j_paid boolean,
-                paid boolean,
-                note text
-                )""")
-
-        bills = [
-
-            Bill("gas", "07-20", 2120, jason_paid=True, paid=True),
-            Bill("gas", "08-20", 4350, jason_paid=True, paid=True),
-            Bill("gas", "09-20", 3471, jason_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("gas", "10-20", 3498, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("gas", "11-20", 2492, jason_paid=True, paid=True, note="Paid by Hakone hotel"),
-            Bill("gas", "12-20", 4088),
-            Bill("gas", "01-21", 4965),
-            Bill("gas", "02-21", 5022),
-            Bill("gas", "03-21", 6523),
-
-            Bill("electric", "05-20", 580, jason_paid=True, paid=True),
-            Bill("electric", "06-20", 5970, jason_paid=True, paid=True),
-            Bill("electric", "07-20", 7029, jason_paid=True, paid=True),
-            Bill("electric", "08-20", 8375, jason_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("electric", "09-20", 9321, jason_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("electric", "10-20", 5345, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("electric", "11-20", 5251, jason_paid=True, paid=True, note="Paid November 28th by Hakone hotel"),
-            Bill("electric", "12-20", 4523, jason_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("electric", "01-21", 5852, jason_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("electric", "02-21", 5054),
-
-            Bill("water", "06-20", 2477, jason_paid=True, paid=True),
-            Bill("water", "07-20,08-20", 7411, jason_paid=True, paid=True),
-            Bill("water", "09-20,10-20", 6364, jason_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("water", "11-20,12-20", 7673, jason_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("water", "01-21,02-21", 8197, jason_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("water", "03-21,04-21", 8720),
-
-            Bill("rent", "05-20", 94000, jason_paid=True, paid=True),
-            Bill("rent", "06-20", 94000, jason_paid=True, paid=True),
-            Bill("rent", "07-20", 94000, jason_paid=True, paid=True),
-            Bill("rent", "08-20", 94000, jason_paid=True, paid=True),
-            Bill("rent", "09-20", 94000, jason_paid=True, paid=True),
-            Bill("rent", "10-20", 94000, jason_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("rent", "11-20", 94000, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("rent", "12-20", 94000, jason_paid=True, paid=True, note="Paid by Hakone hotel"),
-            Bill("rent", "01-21", 94000, jason_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("rent", "02-21", 94000, jason_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("rent", "03-21", 94000, jason_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("rent", "04-21", 94000)
-        ]
-
-        for bill in bills:
-            self.add_bill(bill)
 
     def add_bill(self, bill):
         with self.conn:

@@ -36,8 +36,7 @@ class Application:
         intent = input().lower()
         print()
         if intent not in {'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'}:
-            print(f"{intent} is not a valid input.  Check your spelling and try again.")
-            self.main_menu()
+            self._input_handler()
 
         if intent in {'rent', 'gas', 'electric', 'water'}:
             print(f"What would you like to do with {intent}?")
@@ -46,34 +45,45 @@ class Application:
             print("'check record' - Check a utility record.")
             print("'check unpaid bills' - Check unpaid bills for a given utility.")
             print("'pay bill' - Pay an outstanding bill.")
+            print("'remove bill' - Remove a bill.")
+
             utility_intent = input().lower()
 
             if utility_intent == 'add bill':
                 self.add_bill(intent)
 
-            if utility_intent == 'check record':
+            elif utility_intent == 'check record':
                 self.check_record(intent)
 
-            if utility_intent == 'check unpaid bills':
+            elif utility_intent == 'check unpaid bills':
                 self.check_unpaid_bills(intent)
 
-            if utility_intent == 'pay bill':
+            elif utility_intent == 'pay bill':
                 self.pay_bill(intent)
+
+            elif utility_intent == 'remove bill':
+                self.remove_bill(intent)
+
+            else:
+                self._input_handler()
 
         else:
             if intent == "jason":
-                print("Jason owes ", self.db.get_total_owed("jason"))
+                print("Jason owes", self.db.get_total_owed("jason"))
                 print("Here are his unpaid bills:")
                 for entry in self.db.get_bills_owed("jason"):
                     print(entry)
                 self.main_menu()
 
-            else:
+            elif intent == "xiaochen":
                 print("Xiaochen owes ", self.db.get_total_owed("xiaochen"))
                 print("Here are her unpaid bills:")
                 for entry in self.db.get_bills_owed("xiaochen"):
                     print(entry)
                 self.main_menu()
+
+            else:
+                self._input_handler()
 
     def add_bill(self, utility):
         print()
@@ -81,6 +91,10 @@ class Application:
         print("How much is the bill for?")
         print("Enter the amount in yen:")
         amount_intent = input().lower()
+        try:
+            amount_intent = int(amount_intent)
+        except ValueError:
+            self._input_handler(message="Please enter an integer.", destination="bill addition", arg=utility)
 
         print("What month(s) is this bill for?")
         print("Enter the bill date like the following: '04-21' for April 9th.")
@@ -88,16 +102,25 @@ class Application:
         date_intent = input().lower()
 
         print("Is there anything more you'd like to add?")
-        moreinfo_intent = input("Enter 'yes' or 'no'.")
+        moreinfo_intent = input("Enter 'yes' or 'no'.").lower()
 
         if moreinfo_intent == "yes":
 
             print("Has Xiaochen paid?")
             x_intent = input("Enter 'yes' or 'no'.").lower()
+            if x_intent not in {"yes", "no"}:
+                print("Please enter 'yes' or 'no'.")
+                self.add_bill(utility)
             print("Has Jason paid?")
             j_intent = input("Enter 'yes' or 'no'.").lower()
+            if j_intent not in {"yes", "no"}:
+                print("Please enter 'yes' or 'no'.")
+                self.add_bill(utility)
             print("Has the bill been fully paid?")
             paid_intent = input("Enter 'yes' or 'no'.").lower()
+            if paid_intent not in {"yes", "no"}:
+                print("Please enter 'yes' or 'no'.")
+                self.add_bill(utility)
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
             print("Creating bill...")
@@ -114,13 +137,41 @@ class Application:
 
             bill = Bill(utility, date_intent, amount_intent, xiaochen_paid=x_intent, jason_paid=j_intent, paid=paid_intent, note=note_intent)
 
-        else:
+        elif moreinfo_intent == "no":
             print("Creating bill...")
             bill = Bill(utility, date_intent, amount_intent)
+
+        else:
+            self._input_handler(destination="bill addition", arg=utility)
 
         self.db.add_bill(bill)
         print(f"Bill has been successfully created and added to the {bill.utility} bill record!")
         self.main_menu()
+
+    def remove_bill(self, utility):
+        records = self.db.get_utility_record(utility)
+        for record in records:
+            print(record)
+        print("Which bill would you like to remove?")
+        print("Input bill ID:")
+        intent = input().lower()
+        try:
+            intent = int(intent)
+        except ValueError:
+            self._input_handler(destination="bill removal", arg=utility)
+
+        for entry in records:
+            if entry.id == intent:
+                print(entry)
+                print(f"Will you remove this bill?")
+                intent = input("Type 'yes' or 'no'.").lower()
+                if intent == "yes":
+                    self.db.remove_bill(entry)
+                    self._input_handler()
+                else:
+                    self._input_handler(message="Returning to main menu.")
+
+        self._input_handler(message="The inputted bill ID could not be found.", destination="bill removal", arg=utility)
 
     def check_record(self, utility):
         for record in self.db.get_utility_record(utility):
@@ -131,55 +182,102 @@ class Application:
         for entry in self.db.get_utility_record(utility):
             if entry.paid is False:
                 print(entry)
-
         self.main_menu()
 
     def pay_bill(self, utility):
-        record = self.db.get_utility_record(utility)
+        records = self.db.get_utility_record(utility)
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
         identity = input().lower()
 
         if identity == "xiaochen":
-            for entry in record:
+            for entry in records:
                 if entry.xiaochen_paid is False:
                     print(entry)
 
-        if identity == "jason":
-            for entry in record:
+        elif identity == "jason":
+            for entry in records:
                 if entry.jason_paid is False:
                     print(entry)
 
+        else:
+            self._input_handler(destination="bill payment", arg=utility)
+
         print("Which bill would you like to pay?")
-        print("Enter the bill's ID:")
-        intent = input()
-        for entry in record:
-            if entry.id == int(intent):
-                print(entry)
-                print(f"You owe {entry.owed_amount} yen.")
-                print(f"Will you pay your bill?")
-                intent = input("Type 'yes' or 'no'.").lower()
+        print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
+        print("Enter the ID:")
+        intent = input().lower()
 
-                if intent == "yes":
-                    if identity == 'jason':
-                        entry.jason_paid = True
-                        entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
-                        self.db.pay_bill(entry)
+        intent_list = intent.split(" ")
+        print(intent_list)
+        if len(intent_list) == 1:
+            for entry in records:
+                if entry.id == int(intent):
+                    print(entry)
+                    print(f"You owe {entry.owed_amount} yen.")
+                    print(f"Will you pay your bill?")
+                    intent = input("Type 'yes' or 'no'.").lower()
 
-                    elif identity == 'xiaochen':
-                        entry.xiaochen_paid = True
-                        self.db.pay_bill(entry)
-                        self.utilities[utility].payment_log.append((f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."))
+                    if intent == "yes":
+                        if identity == 'jason':
+                            entry.jason_paid = True
+                            self.db.pay_bill(entry)
+                            entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
 
-                    if entry.jason_paid is True and entry.xiaochen_paid is True:
-                        entry.paid = True
-                        print("This bill has been completely paid off!")
+                        elif identity == 'xiaochen':
+                            entry.xiaochen_paid = True
+                            self.db.pay_bill(entry)
+                            entry.note += f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."
 
-                    print("You successfully paid your bill!")
-                    print("Returning to main menu...")
-                    self.main_menu()
-        print("Not a valid bill ID.")
-        self.main_menu()
+                        if entry.jason_paid is True and entry.xiaochen_paid is True:
+                            entry.paid = True
+                            print("This bill has been completely paid off!")
+
+                        print("You successfully paid your bill!")
+                        print("Returning to main menu...")
+                        self.main_menu()
+
+                    elif intent == "no":
+                        self._input_handler(message=None)
+
+                    else:
+                        self._input_handler(destination="bill payment", arg=utility)
+
+            self._input_handler(message="The inputted bill ID could not be found.", destination="bill payment", arg=utility)
+
+        elif len(intent_list) > 1:
+            for _id in intent_list:
+                for entry in records:
+                    if int(_id) == entry.id:
+                        if identity == 'jason':
+                            entry.jason_paid = True
+                            self.db.pay_bill(entry)
+                            entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
+                            print(f"You successfully paid your bill (ID:{entry.id})!")
+
+                        elif identity == 'xiaochen':
+                            entry.xiaochen_paid = True
+                            self.db.pay_bill(entry)
+                            entry.note += f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."
+                            print(f"You successfully paid your bill (ID:{entry.id})!")
+
+            self._input_handler(message="The inputted bill ID could not be found.", destination="bill payment", arg=utility)
+
+        else:
+            self._input_handler(destination="bill payment", arg=utility)
+
+    def _input_handler(self, message="Please enter a valid input.", destination="main menu", arg=None):
+        if message:
+            print(message)
+        print(f"Returning to {destination}.")
+        if destination == "bill payment":
+            self.pay_bill(arg)
+        elif destination == "bill addition":
+            self.add_bill(arg)
+        elif destination == "bill removal":
+            self.remove_bill(arg)
+        else:
+            self.main_menu()
 
 
 class Bill:
@@ -327,6 +425,11 @@ class Database:
                     note = :note
                 WHERE id = :id
                 """, {"xiaochen_paid": bill.xiaochen_paid, "jason_paid": bill.jason_paid, "paid": bill.paid, "id": bill.id, "note": bill.note})
+
+    def pay_multiple_bills(self, bill_list):
+        with self.conn:
+            for bill in bill_list:
+                self.pay_bill(bill)
 
     def get_all_records(self):
         self.c.execute("SELECT * FROM bills")

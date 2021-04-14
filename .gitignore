@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 
 legacy.txt
+utilities_env/

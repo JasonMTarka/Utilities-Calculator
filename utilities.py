@@ -37,6 +37,7 @@ class Application:
         print()
         print("You can return to this page by entering 'main' at any point.")
         intent = input().lower()
+        print("*****")
         if intent == 'main':
             self.main_menu()
         print()
@@ -53,6 +54,7 @@ class Application:
             print("'remove bill' - Remove a bill.")
 
             utility_intent = input().lower()
+            print("*****")
 
             if utility_intent == 'main':
                 self.main_menu()
@@ -94,11 +96,12 @@ class Application:
                 self._input_handler()
 
     def add_bill(self, utility):
-        print()
 
+        print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
         amount_intent = input().lower()
+        print("*****")
         if amount_intent == 'main':
             self.main_menu()
         try:
@@ -110,17 +113,20 @@ class Application:
         print("Enter the bill date like the following: '04-21' for April 9th.")
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
         date_intent = input().lower()
+        print("*****")
         if date_intent == 'main':
             self.main_menu()
 
         print("Is there anything more you'd like to add?")
         moreinfo_intent = input("Enter 'yes' or 'no'.").lower()
+        print("*****")
         if moreinfo_intent == 'main':
             self.main_menu()
         if moreinfo_intent == "yes":
 
             print("Has Xiaochen paid?")
             x_intent = input("Enter 'yes' or 'no'.").lower()
+            print("*****")
             if x_intent == 'main':
                 self.main_menu()
             if x_intent not in {"yes", "no"}:
@@ -128,6 +134,7 @@ class Application:
                 self.add_bill(utility)
             print("Has Jason paid?")
             j_intent = input("Enter 'yes' or 'no'.").lower()
+            print("*****")
             if j_intent == 'main':
                 self.main_menu()
             if j_intent not in {"yes", "no"}:
@@ -135,6 +142,7 @@ class Application:
                 self.add_bill(utility)
             print("Has the bill been fully paid?")
             paid_intent = input("Enter 'yes' or 'no'.").lower()
+            print("*****")
             if paid_intent == 'main':
                 self.main_menu()
             if paid_intent not in {"yes", "no"}:
@@ -142,6 +150,7 @@ class Application:
                 self.add_bill(utility)
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
+            print("*****")
             print("Creating bill...")
 
             if x_intent == "yes":
@@ -174,6 +183,7 @@ class Application:
         print("Which bill would you like to remove?")
         print("Input bill ID:")
         intent = input().lower()
+        print("*****")
         if intent == 'main':
             self.main_menu()
         try:
@@ -186,6 +196,7 @@ class Application:
                 print(entry)
                 print(f"Will you remove this bill?")
                 intent = input("Type 'yes' or 'no'.").lower()
+                print("*****")
                 if intent == 'main':
                     self.main_menu()
                 if intent == "yes":
@@ -212,18 +223,35 @@ class Application:
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
         identity = input().lower()
+        print("*****")
         if identity == 'main':
             self.main_menu()
 
         if identity == "xiaochen":
+            collector = []
             for entry in records:
                 if entry.xiaochen_paid is False:
-                    print(entry)
+                    collector.append(entry)
+
+            if len(collector) == 0:
+                print("You don't have any bills to pay.")
+                print(self._input_handler(message=None))
+
+            for entry in collector:
+                print(entry)
 
         elif identity == "jason":
+            collector = []
             for entry in records:
                 if entry.jason_paid is False:
-                    print(entry)
+                    collector.append(entry)
+
+            if len(collector) == 0:
+                print("You don't have any bills to pay.")
+                print(self._input_handler(message=None))
+
+            for entry in collector:
+                print(entry)
 
         else:
             self._input_handler(destination="bill payment", arg=utility)
@@ -232,6 +260,7 @@ class Application:
         print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
         print("Enter the ID:")
         intent = input().lower()
+        print("*****")
         if intent == 'main':
             self.main_menu()
 
@@ -244,6 +273,7 @@ class Application:
                     print(f"You owe {entry.owed_amount} yen.")
                     print(f"Will you pay your bill?")
                     intent = input("Type 'yes' or 'no'.").lower()
+                    print("*****")
                     if intent == 'main':
                         self.main_menu()
 

@@ -273,7 +273,7 @@ class Application:
             self.main_menu()
         if integer:
             try:
-                int(intent)
+                intent = int(intent)
             except ValueError:
                 self._error_handler(message="Please enter an integer.", destination=destination, utility=utility)
         if acceptable_inputs:
@@ -283,8 +283,6 @@ class Application:
             if intent not in {'yes', 'no'}:
                 self._error_handler(message="Please enter 'yes' or 'no'.", utility=utility, destination=destination)
 
-        if integer:
-            return int(intent)
         return intent
 
     def _error_handler(self, message="Please enter a valid input.", destination="main menu", utility=None):

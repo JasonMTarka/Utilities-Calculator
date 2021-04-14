@@ -36,118 +36,75 @@ class Application:
         print("Enter 'Rent', 'Gas', 'Electric', 'Water', 'Jason', or 'Xiaochen':")
         print()
         print("You can return to this page by entering 'main' at any point.")
-        intent = input().lower()
-        print("*****")
-        if intent == 'main':
-            self.main_menu()
-        print()
-        if intent not in {'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'}:
-            self._input_handler()
+        intent = self._input_handler(acceptable_inputs={'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'})
 
         if intent in {'rent', 'gas', 'electric', 'water'}:
-            print(f"What would you like to do with {intent}?")
-            print()
-            print("'add bill' - Add a new bill.")
-            print("'check record' - Check a utility record.")
-            print("'check unpaid bills' - Check unpaid bills for a given utility.")
-            print("'pay bill' - Pay an outstanding bill.")
-            print("'remove bill' - Remove a bill.")
+            self.utility_menu(intent)
 
-            utility_intent = input().lower()
-            print("*****")
-
-            if utility_intent == 'main':
-                self.main_menu()
-
-            if utility_intent == 'add bill':
-                self.add_bill(intent)
-
-            elif utility_intent == 'check record':
-                self.check_record(intent)
-
-            elif utility_intent == 'check unpaid bills':
-                self.check_unpaid_bills(intent)
-
-            elif utility_intent == 'pay bill':
-                self.pay_bill(intent)
-
-            elif utility_intent == 'remove bill':
-                self.remove_bill(intent)
-
-            else:
-                self._input_handler()
+        elif intent == "jason":
+            print("Jason owes", self.db.get_total_owed("jason"))
+            print("Here are his unpaid bills:")
+            for entry in self.db.get_bills_owed("jason"):
+                print(entry)
+            self.main_menu()
 
         else:
-            if intent == "jason":
-                print("Jason owes", self.db.get_total_owed("jason"))
-                print("Here are his unpaid bills:")
-                for entry in self.db.get_bills_owed("jason"):
-                    print(entry)
-                self.main_menu()
+            print("Xiaochen owes ", self.db.get_total_owed("xiaochen"))
+            print("Here are her unpaid bills:")
+            for entry in self.db.get_bills_owed("xiaochen"):
+                print(entry)
+            self.main_menu()
 
-            elif intent == "xiaochen":
-                print("Xiaochen owes ", self.db.get_total_owed("xiaochen"))
-                print("Here are her unpaid bills:")
-                for entry in self.db.get_bills_owed("xiaochen"):
-                    print(entry)
-                self.main_menu()
+    def utility_menu(self, utility, display=True):
+        if display:
+            self.check_record(utility)
+        print(f"What would you like to do with {utility}?")
+        print()
+        print("'add bill' - Add a new bill.")
+        print("'check unpaid bills' - Check unpaid bills for a given utility.")
+        print("'pay bill' - Pay an outstanding bill.")
+        print("'remove bill' - Remove a bill.")
 
-            else:
-                self._input_handler()
+        intent = self._input_handler(acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'})
+
+        if intent == 'add bill':
+            self.add_bill(utility)
+
+        elif intent == 'check unpaid bills':
+            self.check_unpaid_bills(utility)
+
+        elif intent == 'pay bill':
+            self.pay_bill(utility)
+
+        elif intent == 'remove bill':
+            self.remove_bill(utility)
+
+        else:
+            self._error_handler()
 
     def add_bill(self, utility):
 
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
-        amount_intent = input().lower()
-        print("*****")
-        if amount_intent == 'main':
-            self.main_menu()
-        try:
-            amount_intent = int(amount_intent)
-        except ValueError:
-            self._input_handler(message="Please enter an integer.", destination="bill addition", arg=utility)
+        amount_intent = self._input_handler(integer=True, utility=utility, destination="bill addition")
 
         print("What month(s) is this bill for?")
         print("Enter the bill date like the following: '04-21' for April 9th.")
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
-        date_intent = input().lower()
-        print("*****")
-        if date_intent == 'main':
-            self.main_menu()
+        date_intent = self._input_handler()
 
         print("Is there anything more you'd like to add?")
-        moreinfo_intent = input("Enter 'yes' or 'no'.").lower()
-        print("*****")
-        if moreinfo_intent == 'main':
-            self.main_menu()
+        moreinfo_intent = self._input_handler(boolean=True)
+
         if moreinfo_intent == "yes":
 
             print("Has Xiaochen paid?")
-            x_intent = input("Enter 'yes' or 'no'.").lower()
-            print("*****")
-            if x_intent == 'main':
-                self.main_menu()
-            if x_intent not in {"yes", "no"}:
-                print("Please enter 'yes' or 'no'.")
-                self.add_bill(utility)
+            x_intent = self._input_handler(message="Please enter 'yes' or 'no'.", destination="bill addition", utility=utility, boolean=True)
+
             print("Has Jason paid?")
-            j_intent = input("Enter 'yes' or 'no'.").lower()
-            print("*****")
-            if j_intent == 'main':
-                self.main_menu()
-            if j_intent not in {"yes", "no"}:
-                print("Please enter 'yes' or 'no'.")
-                self.add_bill(utility)
-            print("Has the bill been fully paid?")
-            paid_intent = input("Enter 'yes' or 'no'.").lower()
-            print("*****")
-            if paid_intent == 'main':
-                self.main_menu()
-            if paid_intent not in {"yes", "no"}:
-                print("Please enter 'yes' or 'no'.")
-                self.add_bill(utility)
+            j_intent = self._input_handler(message="Please enter 'yes' or 'no'.", destination="bill addition", utility=utility, boolean=True)
+
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
             print("*****")
@@ -163,17 +120,20 @@ class Application:
             else:
                 j_intent = False
 
+            if x_intent is True and j_intent is True:
+                paid_intent = True
+            else:
+                paid_intent = False
+
             bill = Bill(utility, date_intent, amount_intent, xiaochen_paid=x_intent, jason_paid=j_intent, paid=paid_intent, note=note_intent)
 
         elif moreinfo_intent == "no":
             print("Creating bill...")
             bill = Bill(utility, date_intent, amount_intent)
 
-        else:
-            self._input_handler(destination="bill addition", arg=utility)
-
         self.db.add_bill(bill)
         print(f"Bill has been successfully created and added to the {bill.utility} bill record!")
+        print("Returning to main menu...")
         self.main_menu()
 
     def remove_bill(self, utility):
@@ -182,50 +142,37 @@ class Application:
             print(record)
         print("Which bill would you like to remove?")
         print("Input bill ID:")
-        intent = input().lower()
-        print("*****")
-        if intent == 'main':
-            self.main_menu()
-        try:
-            intent = int(intent)
-        except ValueError:
-            self._input_handler(destination="bill removal", arg=utility)
+        intent = self._input_handler(integer=True, destination="bill removal", utility=utility)
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
                 print(f"Will you remove this bill?")
-                intent = input("Type 'yes' or 'no'.").lower()
-                print("*****")
-                if intent == 'main':
-                    self.main_menu()
+                intent = self._input_handler(boolean=True, utility=utility, destination="bill removal")
+
                 if intent == "yes":
                     self.db.remove_bill(entry)
-                    self._input_handler(message=None)
+                    self._error_handler(message=None)
                 else:
-                    self._input_handler(message="Returning to main menu.")
+                    self._error_handler(message="Returning to main menu.")
 
-        self._input_handler(message="The inputted bill ID could not be found.", destination="bill removal", arg=utility)
+        self._error_handler(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
 
     def check_record(self, utility):
         for record in self.db.get_utility_record(utility):
             print(record)
-        self.main_menu()
 
     def check_unpaid_bills(self, utility):
         for entry in self.db.get_utility_record(utility):
             if entry.paid is False:
                 print(entry)
-        self.main_menu()
+        self.utility_menu(utility, display=False)
 
     def pay_bill(self, utility):
         records = self.db.get_utility_record(utility)
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
-        identity = input().lower()
-        print("*****")
-        if identity == 'main':
-            self.main_menu()
+        identity = self._input_handler(acceptable_inputs={'xiaochen', 'jason'}, utility=utility, destination="bill payment")
 
         if identity == "xiaochen":
             collector = []
@@ -235,12 +182,12 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self._input_handler(message=None))
+                print(self._error_handler(message=None))
 
             for entry in collector:
                 print(entry)
 
-        elif identity == "jason":
+        else:
             collector = []
             for entry in records:
                 if entry.jason_paid is False:
@@ -248,34 +195,24 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self._input_handler(message=None))
+                print(self._error_handler(message=None))
 
             for entry in collector:
                 print(entry)
 
-        else:
-            self._input_handler(destination="bill payment", arg=utility)
-
         print("Which bill would you like to pay?")
         print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
         print("Enter the ID:")
-        intent = input().lower()
-        print("*****")
-        if intent == 'main':
-            self.main_menu()
+        intent = self._input_handler(destination="bill payment", utility=utility)
 
         intent_list = intent.split(" ")
-        print(intent_list)
         if len(intent_list) == 1:
             for entry in records:
                 if entry.id == int(intent):
                     print(entry)
                     print(f"You owe {entry.owed_amount} yen.")
                     print(f"Will you pay your bill?")
-                    intent = input("Type 'yes' or 'no'.").lower()
-                    print("*****")
-                    if intent == 'main':
-                        self.main_menu()
+                    intent = self._input_handler(destination="bill payment", utility=utility, boolean=True)
 
                     if intent == "yes":
                         if identity == 'jason':
@@ -297,12 +234,12 @@ class Application:
                         self.main_menu()
 
                     elif intent == "no":
-                        self._input_handler(message=None)
+                        self._error_handler(message=None)
 
                     else:
-                        self._input_handler(destination="bill payment", arg=utility)
+                        self._error_handler(destination="bill payment", utility=utility)
 
-            self._input_handler(message="The inputted bill ID could not be found.", destination="bill payment", arg=utility)
+            self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
 
         elif len(intent_list) > 1:
             for _id in intent_list:
@@ -320,21 +257,48 @@ class Application:
                             entry.note += f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."
                             print(f"You successfully paid your bill (ID:{entry.id})!")
 
-            self._input_handler(message="The inputted bill ID could not be found.", destination="bill payment", arg=utility)
+            self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
 
         else:
-            self._input_handler(destination="bill payment", arg=utility)
+            self._error_handler(destination="bill payment", utility=utility)
 
-    def _input_handler(self, message="Please enter a valid input.", destination="main menu", arg=None):
+    def _input_handler(self, acceptable_inputs=None, message="Please enter a valid input.", utility=None, destination="main menu", integer=False, boolean=False):
+        if boolean:
+            print("Enter 'yes' or 'no'.")
+        intent = input().lower()
+        print("*****")
+        print()
+
+        if intent == 'main' or intent == 'back':
+            self.main_menu()
+        if integer:
+            try:
+                int(intent)
+            except ValueError:
+                self._error_handler(message="Please enter an integer.", destination=destination, utility=utility)
+        if acceptable_inputs:
+            if intent not in acceptable_inputs:
+                self._error_handler(message=message, utility=utility, destination=destination)
+        if boolean:
+            if intent not in {'yes', 'no'}:
+                self._error_handler(message="Please enter 'yes' or 'no'.", utility=utility, destination=destination)
+
+        if integer:
+            return int(intent)
+        return intent
+
+    def _error_handler(self, message="Please enter a valid input.", destination="main menu", utility=None):
         if message:
             print(message)
         print(f"Returning to {destination}.")
         if destination == "bill payment":
-            self.pay_bill(arg)
+            self.pay_bill(utility)
         elif destination == "bill addition":
-            self.add_bill(arg)
+            self.add_bill(utility)
         elif destination == "bill removal":
-            self.remove_bill(arg)
+            self.remove_bill(utility)
+        elif destination == "utility menu":
+            self.utility_menu(utility)
         else:
             self.main_menu()
 

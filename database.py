@@ -74,3 +74,6 @@ class Database:
 
     def _convert_to_object(self, record):
         return Bill(record[1], record[2], record[3], xiaochen_paid=record[4], jason_paid=record[5], paid=record[6], note=record[7], primary_key=record[0])
+
+        # Example bill instantiation:
+        # Bill("electric", "10-20", 5345, xiaochen_paid=True, jason_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip")

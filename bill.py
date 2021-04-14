@@ -52,8 +52,8 @@ class Bill:
             j = "not paid yet"
 
         return f"""
-            A {self.utility} bill for {self.amount} yen for {self.date}.
-            Xiaochen has {x} and Jason has {j}.
-            ID: {self.id}
-            Notes: {self.note}
+Date: {self.date}  A {self.utility} bill for {self.amount} yen.
+ID: {self.id}       Xiaochen has {x} and Jason has {j}.
+            
+             Notes: {self.note}
             """

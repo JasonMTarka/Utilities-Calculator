@@ -8,14 +8,18 @@ from database import Database
 class Application:
     def __init__(self, db):
         self.db = db
+        self.user1_upper = self.db.get_user(1)
+        self.user2_upper = self.db.get_user(2)
+        self.user1 = self.user1_upper.lower()
+        self.user2 = self.user2_upper.lower()
 
     @property
-    def jason_owes(self):
-        return self.db.get_total_owed("jason")
+    def user1_owes(self):
+        return self.db.get_total_owed(self.user1)
 
     @property
-    def xiaochen_owes(self):
-        return self.db.get_total_owed("xiaochen")
+    def user2_owes(self):
+        return self.db.get_total_owed(self.user2)
 
     @property
     def today(self):
@@ -24,35 +28,35 @@ class Application:
     def intro(self):
         system('cls')
         print()
-        print("Welcome to Jason and Xiaochen's utility calculator.")
+        print(f"Welcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
         print(f"Today is {self.today}")
         self.main_menu()
 
     def main_menu(self):
         print()
-        print(f"Jason currently owes {self.jason_owes} yen and Xiaochen currently owes {self.xiaochen_owes} yen.")
+        print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print()
-        print("You can examine a particular utility or either Jason or Xiaochen's payment history.")
-        print("Enter 'Rent', 'Gas', 'Electric', 'Water', 'Jason', or 'Xiaochen':")
+        print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
+        print(f"Enter 'Rent', 'Gas', 'Electric', 'Water', '{self.user1_upper}', or '{self.user2_upper}':")
         print()
         print("You can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
-        intent = self._input_handler(acceptable_inputs={'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'})
+        intent = self._input_handler(acceptable_inputs={'rent', 'gas', 'electric', 'water', self.user1, self.user2})
 
         if intent in {'rent', 'gas', 'electric', 'water'}:
             self.utility_menu(intent)
 
-        elif intent == "jason":
-            print("Jason owes", self.db.get_total_owed("jason"))
-            print("Here are his unpaid bills:")
-            for entry in self.db.get_bills_owed("jason"):
+        elif intent == self.user1:
+            print(f"{self.user1_upper} owes", self.db.get_total_owed(self.user1))
+            print("Here are their unpaid bills:")
+            for entry in self.db.get_bills_owed(self.user1.lower()):
                 print(entry)
             self.main_menu()
 
         else:
-            print("Xiaochen owes ", self.db.get_total_owed("xiaochen"))
-            print("Here are her unpaid bills:")
-            for entry in self.db.get_bills_owed("xiaochen"):
+            print(f"{self.user2_upper} owes ", self.db.get_total_owed(self.user2))
+            print("Here are their unpaid bills:")
+            for entry in self.db.get_bills_owed(self.user2):
                 print(entry)
             self.main_menu()
 
@@ -105,11 +109,11 @@ class Application:
 
         if moreinfo_intent == "yes":
 
-            print("Has Xiaochen paid?")
-            x_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
-
-            print("Has Jason paid?")
+            print(f"Has {self.user1_upper} paid?")
             j_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
+
+            print(f"Has {self.user2_upper} paid?")
+            x_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
@@ -131,7 +135,7 @@ class Application:
             else:
                 paid_intent = False
 
-            bill = Bill(utility, date_intent, amount_intent, xiaochen_paid=x_intent, jason_paid=j_intent, paid=paid_intent, note=note_intent)
+            bill = Bill(utility, date_intent, amount_intent, user1_paid=j_intent, user2_paid=x_intent, paid=paid_intent, note=note_intent)
 
         elif moreinfo_intent == "no":
             print("Creating bill...")
@@ -177,13 +181,13 @@ class Application:
     def pay_bill(self, utility):
         records = self.db.get_utility_record(utility)
         print("Who are you?")
-        print("Enter 'Xiaochen' or 'Jason'.")
-        identity = self._input_handler(destination="bill payment", acceptable_inputs={'xiaochen', 'jason'}, utility=utility,)
+        print(f"Enter '{self.user1_upper}' or '{self.user2_upper}'.")
+        identity = self._input_handler(destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
 
-        if identity == "xiaochen":
+        if identity == self.user1:
             collector = []
             for entry in records:
-                if entry.xiaochen_paid is False:
+                if entry.user1_paid is False:
                     collector.append(entry)
 
             if len(collector) == 0:
@@ -196,7 +200,7 @@ class Application:
         else:
             collector = []
             for entry in records:
-                if entry.jason_paid is False:
+                if entry.user2_paid is False:
                     collector.append(entry)
 
             if len(collector) == 0:
@@ -221,17 +225,17 @@ class Application:
                     intent = self._input_handler(destination="bill payment", utility=utility, boolean=True)
 
                     if intent == "yes":
-                        if identity == 'jason':
-                            entry.jason_paid = True
+                        if identity == self.user1:
+                            entry.user1_paid = True
                             self.db.pay_bill(entry)
-                            entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
+                            entry.note += f"{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
 
-                        elif identity == 'xiaochen':
-                            entry.xiaochen_paid = True
+                        elif identity == self.user2:
+                            entry.user2_paid = True
                             self.db.pay_bill(entry)
-                            entry.note += f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."
+                            entry.note += f"{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
 
-                        if entry.jason_paid is True and entry.xiaochen_paid is True:
+                        if entry.user1_paid is True and entry.user2_paid is True:
                             entry.paid = True
                             print("This bill has been completely paid off!")
 
@@ -251,16 +255,16 @@ class Application:
             for _id in intent_list:
                 for entry in records:
                     if int(_id) == entry.id:
-                        if identity == 'jason':
-                            entry.jason_paid = True
+                        if identity == self.user1:
+                            entry.user1_paid = True
                             self.db.pay_bill(entry)
-                            entry.note += f"Jason paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off his portion of the bill."
+                            entry.note += f"{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
                             print(f"You successfully paid your bill (ID:{entry.id})!")
 
-                        elif identity == 'xiaochen':
-                            entry.xiaochen_paid = True
+                        elif identity == self.user2:
+                            entry.user2_paid = True
                             self.db.pay_bill(entry)
-                            entry.note += f"Xiaochen paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off her portion of the bill."
+                            entry.note += f"{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
                             print(f"You successfully paid your bill (ID:{entry.id})!")
 
             self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
@@ -312,7 +316,7 @@ class Application:
 
 def main():
 
-    db = Database()
+    db = Database(test=True)
     app = Application(db)
     app.intro()
 

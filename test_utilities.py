@@ -1,5 +1,4 @@
 import unittest
-import utilities_calculator
 
 from random import choice, randint
 
@@ -12,17 +11,18 @@ class TestUtilityCalculator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db = Database(test=True)
-        cls.db.c.execute("""
-                CREATE TABLE bills (
-                id integer primary key,
-                utility text,
-                date text,
-                amount integer,
-                x_paid boolean,
-                j_paid boolean,
-                paid boolean,
-                note text
-                )""")
+
+        # cls.db.c.execute("""
+        #         CREATE TABLE bills (
+        #         id integer primary key,
+        #         utility text,
+        #         date text,
+        #         amount integer,
+        #         x_paid boolean,
+        #         j_paid boolean,
+        #         paid boolean,
+        #         note text
+        #         )""")
 
     @classmethod
     def tearDownClass(cls):
@@ -52,22 +52,22 @@ class TestUtilityCalculator(unittest.TestCase):
         else:
             date = choice(("02-17", "03-17,04-17", "10-18", "10-20"))
 
-        if kwargs.get('xiaochen_paid') is False or kwargs.get('xiaochen_paid') is True:
-            xiaochen_paid = kwargs.get('xiaochen_paid')
+        if kwargs.get('user2_paid') is False or kwargs.get('user2_paid') is True:
+            user2_paid = kwargs.get('user2_paid')
         else:
-            xiaochen_paid = choice((True, False))
+            user2_paid = choice((True, False))
 
-        if kwargs.get('jason_paid') is False or kwargs.get('jason_paid') is True:
-            jason_paid = kwargs.get('jason_paid')
+        if kwargs.get('user1_paid') is False or kwargs.get('user1_paid') is True:
+            user1_paid = kwargs.get('user1_paid')
         else:
-            jason_paid = choice((True, False))
+            user1_paid = choice((True, False))
 
-        if xiaochen_paid and jason_paid:
+        if user2_paid and user1_paid:
             paid = True
         else:
             paid = False
 
-        return Bill(utility, date, amount, xiaochen_paid=xiaochen_paid, jason_paid=jason_paid, paid=paid, note="Test Note")
+        return Bill(utility, date, amount, user2_paid=user2_paid, user1_paid=user1_paid, paid=paid, note="Test Note")
 
     def test_get_record(self):
         self.db.add_bill(self.bill_generator())
@@ -100,19 +100,19 @@ class TestUtilityCalculator(unittest.TestCase):
             amount -= 1
 
     def test_db_pay_bill(self):
-        bill = self.bill_generator(jason_paid=False, paid=False)
+        bill = self.bill_generator(user1_paid=False, paid=False)
 
         self.db.add_bill(bill)
 
-        self.assertEqual(self.db.get_all_records()[0].jason_paid, False)
+        self.assertEqual(self.db.get_all_records()[0].user1_paid, False)
         self.assertEqual(self.db.get_all_records()[0].paid, False)
 
-        bill.xiaochen_paid = True
-        bill.jason_paid = True
+        bill.user2_paid = True
+        bill.user1_paid = True
         bill.paid = True
         self.db.pay_bill(bill)
 
-        self.assertEqual(self.db.get_all_records()[0].jason_paid, True)
+        self.assertEqual(self.db.get_all_records()[0].user1_paid, True)
         self.assertEqual(self.db.get_all_records()[0].paid, True)
 
     def test_db_pay_multiple_bills(self):
@@ -121,8 +121,8 @@ class TestUtilityCalculator(unittest.TestCase):
         bill_list = []
 
         for _ in range(amount):
-            bill = self.bill_generator(jason_paid=False, paid=False)
-            bill.jason_paid = False
+            bill = self.bill_generator(user1_paid=False, paid=False)
+            bill.user1_paid = False
             bill.paid = False
             self.db.add_bill(bill)
             bill_list.append(bill)
@@ -136,8 +136,8 @@ class TestUtilityCalculator(unittest.TestCase):
         for bill in bill_list:
             bill.id = bill_id
             bill_id += 1
-            bill.xiaochen_paid = True
-            bill.jason_paid = True
+            bill.user2_paid = True
+            bill.user1_paid = True
             bill.paid = True
 
         self.db.pay_multiple_bills(bill_list)

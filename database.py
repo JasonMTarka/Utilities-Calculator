@@ -84,12 +84,6 @@ class Database:
             INSERT INTO users VALUES(NULL, 'Xiaochen')
             """)
 
-        self.c.execute("""
-            SELECT * FROM users
-            """)
-
-        print(self.c.fetchall())
-
     def get_user(self, user_id):
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})
         return self.c.fetchone()[1]
@@ -154,7 +148,7 @@ class Database:
         return collector
 
     def get_bills_owed(self, person):
-        if person == self.get_user(1):
+        if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:
             self.c.execute("SELECT * FROM bills WHERE x_paid=False")
@@ -163,7 +157,7 @@ class Database:
         return collector
 
     def get_total_owed(self, person):
-        if person == self.get_user(1):
+        if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:
             self.c.execute("SELECT * FROM bills WHERE x_paid=False")

@@ -11,6 +11,7 @@ class TestUtilityCalculator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db = Database(test=True)
+
         # cls.db.c.execute("""
         #         CREATE TABLE bills (
         #         id integer primary key,

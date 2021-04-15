@@ -42,15 +42,15 @@ class Bill:
             """
 
     def __str__(self):
-        if self.user2_paid is True:
-            x = "paid"
-        else:
-            x = "not paid yet"
-
         if self.user1_paid is True:
             j = "paid"
         else:
             j = "not paid yet"
+
+        if self.user2_paid is True:
+            x = "paid"
+        else:
+            x = "not paid yet"
 
         if self.kwargs.get('user1'):
             user1 = self.kwargs.get('user1')

@@ -69,6 +69,17 @@ class TestUtilityCalculator(unittest.TestCase):
 
         return Bill(utility, date, amount, xiaochen_paid=xiaochen_paid, jason_paid=jason_paid, paid=paid, note="Test Note")
 
+    def test_get_record(self):
+        self.db.add_bill(self.bill_generator())
+        self.db.add_bill(self.bill_generator())
+        self.db.add_bill(self.bill_generator())
+        self.db.add_bill(self.bill_generator())
+
+        self.assertEqual(self.db.get_record(2).id, 2)
+        self.assertEqual(self.db.get_record(1).id, 1)
+        self.assertEqual(self.db.get_record(4).id, 4)
+        self.assertIsNone(self.db.get_record(5))
+
     def test_db_add_bill(self):
         self.db.add_bill(self.bill_generator())
         self.assertEqual(len(self.db.get_all_records()), 1)

@@ -44,6 +44,17 @@ class Database:
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
+    def get_record(self, bill):
+        try:
+            self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill.id})
+        except AttributeError:
+            self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill})
+
+        try:
+            return self._convert_to_object(self.c.fetchone())
+        except TypeError:
+            return None
+
     def get_utility_record(self, utility):
         self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]

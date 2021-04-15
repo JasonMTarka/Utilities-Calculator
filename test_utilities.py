@@ -1,6 +1,5 @@
 import unittest
-import utilities
-import sqlite3
+import utilities_calculator
 
 from random import choice, randint
 

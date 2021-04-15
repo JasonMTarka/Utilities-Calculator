@@ -87,7 +87,7 @@ class Application:
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
-        amount_intent = self._input_handler(integer=True, utility=utility, destination="bill addition")
+        amount_intent = self._input_handler(destination="bill addition", integer=True, utility=utility)
 
         print("What month(s) is this bill for?")
         print("Enter the bill date like the following: '04-21' for April 9th.")
@@ -100,10 +100,10 @@ class Application:
         if moreinfo_intent == "yes":
 
             print("Has Xiaochen paid?")
-            x_intent = self._input_handler(message="Please enter 'yes' or 'no'.", destination="bill addition", utility=utility, boolean=True)
+            x_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print("Has Jason paid?")
-            j_intent = self._input_handler(message="Please enter 'yes' or 'no'.", destination="bill addition", utility=utility, boolean=True)
+            j_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
@@ -142,13 +142,13 @@ class Application:
             print(record)
         print("Which bill would you like to remove?")
         print("Input bill ID:")
-        intent = self._input_handler(integer=True, destination="bill removal", utility=utility)
+        intent = self._input_handler(destination="bill removal", integer=True, utility=utility)
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
                 print(f"Will you remove this bill?")
-                intent = self._input_handler(boolean=True, utility=utility, destination="bill removal")
+                intent = self._input_handler(destination="bill removal", boolean=True, utility=utility)
 
                 if intent == "yes":
                     self.db.remove_bill(entry)
@@ -172,7 +172,7 @@ class Application:
         records = self.db.get_utility_record(utility)
         print("Who are you?")
         print("Enter 'Xiaochen' or 'Jason'.")
-        identity = self._input_handler(acceptable_inputs={'xiaochen', 'jason'}, utility=utility, destination="bill payment")
+        identity = self._input_handler(destination="bill payment", acceptable_inputs={'xiaochen', 'jason'}, utility=utility,)
 
         if identity == "xiaochen":
             collector = []
@@ -262,8 +262,8 @@ class Application:
         else:
             self._error_handler(destination="bill payment", utility=utility)
 
-    def _input_handler(self, acceptable_inputs=None, message="Please enter a valid input.", utility=None, destination="main menu", integer=False, boolean=False):
-        if boolean:
+    def _input_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+        if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent = input().lower()
         print("*****")
@@ -271,17 +271,18 @@ class Application:
 
         if intent == 'main' or intent == 'back':
             self.main_menu()
-        if integer:
+        if kwargs.get('integer'):
             try:
                 intent = int(intent)
             except ValueError:
-                self._error_handler(message="Please enter an integer.", destination=destination, utility=utility)
-        if acceptable_inputs:
+                self._error_handler(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
+        if kwargs.get('acceptable_inputs'):
+            acceptable_inputs = kwargs.get('acceptable_inputs')
             if intent not in acceptable_inputs:
-                self._error_handler(message=message, utility=utility, destination=destination)
-        if boolean:
+                self._error_handler(message=message, destination=destination, utility=kwargs.get('utility'))
+        if kwargs.get('boolean'):
             if intent not in {'yes', 'no'}:
-                self._error_handler(message="Please enter 'yes' or 'no'.", utility=utility, destination=destination)
+                self._error_handler(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'),)
 
         return intent
 

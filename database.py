@@ -3,8 +3,12 @@ from bill import Bill
 
 
 class Database:
-    def __init__(self):
-        self.conn = sqlite3.connect("records.db")
+    def __init__(self, test=False):
+        if test is True:
+            self.conn = sqlite3.connect(':memory:')
+        else:
+            self.conn = sqlite3.connect("records.db")
+
         self.c = self.conn.cursor()
 
     def add_bill(self, bill):
@@ -14,7 +18,10 @@ class Database:
 
     def remove_bill(self, bill):
         with self.conn:
-            self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
+            try:
+                self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
+            except AttributeError:
+                self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill})
 
     def pay_bill(self, bill):
         with self.conn:
@@ -25,7 +32,7 @@ class Database:
                     paid = :paid,
                     note = :note
                 WHERE id = :id
-                """, {"xiaochen_paid": bill.xiaochen_paid, "jason_paid": bill.jason_paid, "paid": bill.paid, "id": bill.id, "note": bill.note})
+                """, {"xiaochen_paid": bill.xiaochen_paid, "jason_paid": bill.jason_paid, "paid": bill.paid, "note": bill.note, "id": bill.id})
 
     def pay_multiple_bills(self, bill_list):
         with self.conn:

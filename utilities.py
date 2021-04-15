@@ -36,6 +36,7 @@ class Application:
         print("Enter 'Rent', 'Gas', 'Electric', 'Water', 'Jason', or 'Xiaochen':")
         print()
         print("You can return to this page by entering 'main' at any point.")
+        print("You can also quit this program at any point by entering 'quit'.")
         intent = self._input_handler(acceptable_inputs={'rent', 'gas', 'electric', 'water', 'jason', 'xiaochen'})
 
         if intent in {'rent', 'gas', 'electric', 'water'}:
@@ -65,7 +66,7 @@ class Application:
         print("'pay bill' - Pay an outstanding bill.")
         print("'remove bill' - Remove a bill.")
 
-        intent = self._input_handler(acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'})
+        intent = self._input_handler(destination='utility menu', acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'}, utility=utility, display=False)
 
         if intent == 'add bill':
             self.add_bill(utility)
@@ -81,6 +82,11 @@ class Application:
 
         else:
             self._error_handler()
+
+    def quit_program(self):
+        print("Closing program...")
+        self.db.conn.close()
+        quit()
 
     def add_bill(self, utility):
 
@@ -271,6 +277,8 @@ class Application:
 
         if intent == 'main' or intent == 'back':
             self.main_menu()
+        if intent == 'quit':
+            self.quit_program()
         if kwargs.get('integer'):
             try:
                 intent = int(intent)
@@ -286,18 +294,18 @@ class Application:
 
         return intent
 
-    def _error_handler(self, message="Please enter a valid input.", destination="main menu", utility=None):
+    def _error_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
         if message:
             print(message)
         print(f"Returning to {destination}.")
         if destination == "bill payment":
-            self.pay_bill(utility)
+            self.pay_bill(kwargs.get('utility'))
         elif destination == "bill addition":
-            self.add_bill(utility)
+            self.add_bill(kwargs.get('utility'))
         elif destination == "bill removal":
-            self.remove_bill(utility)
+            self.remove_bill(kwargs.get('utility'))
         elif destination == "utility menu":
-            self.utility_menu(utility)
+            self.utility_menu(kwargs.get('utility'), display=kwargs.get('display'))
         else:
             self.main_menu()
 

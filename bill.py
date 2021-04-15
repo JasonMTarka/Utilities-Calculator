@@ -2,7 +2,7 @@
 
 class Bill:
 
-    def __init__(self, utility, date, amount, xiaochen_paid=True, jason_paid=False, paid=False, note="", primary_key=None):
+    def __init__(self, utility, date, amount, xiaochen_paid=True, jason_paid=False, paid=False, note="", primary_key=1):
 
         self.utility = utility
         self.amount = amount
@@ -37,7 +37,7 @@ class Bill:
         return f"""
             Bill({self.utility}, {self.date}, {self.amount},
             xiaochen_paid={self.xiaochen_paid}, jason_paid={self.jason_paid},
-            paid={self.paid}, note={self.note})
+            paid={self.paid}, note={self.note}, primary_key={self.id})
             """
 
     def __str__(self):

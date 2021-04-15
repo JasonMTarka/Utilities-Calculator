@@ -77,11 +77,11 @@ class Database:
             self.add_bill(bill)
 
         self.c.execute("""
-            INSERT INTO users VALUES(NULL, 'Xuan')
+            INSERT INTO users VALUES(NULL, 'Jason')
             """)
 
         self.c.execute("""
-            INSERT INTO users VALUES(NULL, 'Marcus')
+            INSERT INTO users VALUES(NULL, 'Xiaochen')
             """)
 
         self.c.execute("""
@@ -174,7 +174,7 @@ class Database:
         return holder
 
     def _convert_to_object(self, record):
-        return Bill(record[1], record[2], record[3], user2_paid=record[4], user1_paid=record[5], paid=record[6], note=record[7], primary_key=record[0])
+        return Bill(record[1], record[2], record[3], user2_paid=record[4], user1_paid=record[5], paid=record[6], note=record[7], primary_key=record[0], user1=self.get_user(1), user2=self.get_user(2))
 
         # Example bill instantiation:
         # Bill("electric", "10-20", 5345, user2_paid=True, user1_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip")

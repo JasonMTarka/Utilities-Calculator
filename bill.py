@@ -2,7 +2,7 @@
 
 class Bill:
 
-    def __init__(self, utility, date, amount, user1_paid=False, user2_paid=True, paid=False, note="", primary_key=1):
+    def __init__(self, utility, date, amount, user1_paid=False, user2_paid=True, paid=False, note="", primary_key=1, **kwargs):
 
         self.utility = utility
         self.amount = amount
@@ -32,6 +32,7 @@ class Bill:
 
         self.note = note
         self.id = primary_key
+        self.kwargs = kwargs
 
     def __repr__(self):
         return f"""
@@ -51,9 +52,18 @@ class Bill:
         else:
             j = "not paid yet"
 
+        if self.kwargs.get('user1'):
+            user1 = self.kwargs.get('user1')
+        else:
+            user1 = 'User1'
+        if self.kwargs.get('user2'):
+            user2 = self.kwargs.get('user2')
+        else:
+            user2 = 'User2'
+
         return f"""
 Date: {self.date}  A {self.utility} bill for {self.amount} yen.
-ID: {self.id}       User1 has {j} and User2 has {x}.
+ID: {self.id}       {user1} has {j} and {user2} has {x}.
             
              Notes: {self.note}
             """

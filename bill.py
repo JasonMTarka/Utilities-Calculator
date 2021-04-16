@@ -2,7 +2,7 @@
 
 class Bill:
 
-    def __init__(self, utility, date, amount, user1_paid=False, user2_paid=True, paid=False, note="", primary_key=1, **kwargs):
+    def __init__(self, utility, date, amount, user1_paid=False, user2_paid=False, paid=False, note="", primary_key=1, **kwargs):
 
         self.utility = utility
         self.amount = amount
@@ -64,6 +64,6 @@ class Bill:
         return f"""
 Date: {self.date}  A {self.utility} bill for {self.amount} yen.
 ID: {self.id}       {user1} has {j} and {user2} has {x}.
-            
-             Notes: {self.note}
+
+Notes: {self.note}
             """

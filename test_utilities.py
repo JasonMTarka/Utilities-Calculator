@@ -12,18 +12,6 @@ class TestUtilityCalculator(unittest.TestCase):
     def setUpClass(cls):
         cls.db = Database(test=True)
 
-        # cls.db.c.execute("""
-        #         CREATE TABLE bills (
-        #         id integer primary key,
-        #         utility text,
-        #         date text,
-        #         amount integer,
-        #         x_paid boolean,
-        #         j_paid boolean,
-        #         paid boolean,
-        #         note text
-        #         )""")
-
     @classmethod
     def tearDownClass(cls):
         cls.db.conn.close()

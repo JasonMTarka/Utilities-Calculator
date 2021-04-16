@@ -130,3 +130,5 @@ dmypy.json
 
 legacy.txt
 utilities_env/
+records.db
+records.db-journal

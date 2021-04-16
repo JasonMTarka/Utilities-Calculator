@@ -1,5 +1,5 @@
 from datetime import datetime
-from os import system
+from os import system, path
 
 from bill import Bill
 from database import Database
@@ -23,7 +23,7 @@ class Application:
 
     @property
     def today(self):
-        return datetime.today().strftime('%B %d, %Y at %I:%M %p.')
+        return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
     def intro(self):
         system('cls')
@@ -33,7 +33,6 @@ class Application:
         self.main_menu()
 
     def main_menu(self):
-        print()
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print()
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
@@ -93,7 +92,6 @@ class Application:
         quit()
 
     def add_bill(self, utility):
-
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
@@ -120,17 +118,17 @@ class Application:
             print("*****")
             print("Creating bill...")
 
-            if x_intent == "yes":
-                x_intent = True
-            else:
-                x_intent = False
-
             if j_intent == "yes":
                 j_intent = True
             else:
                 j_intent = False
 
-            if x_intent is True and j_intent is True:
+            if x_intent == "yes":
+                x_intent = True
+            else:
+                x_intent = False
+
+            if j_intent is True and x_intent is True:
                 paid_intent = True
             else:
                 paid_intent = False
@@ -148,6 +146,9 @@ class Application:
 
     def remove_bill(self, utility):
         records = self.db.get_utility_record(utility)
+        if not records:
+            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+
         for record in records:
             print(record)
         print("Which bill would you like to remove?")
@@ -173,13 +174,24 @@ class Application:
             print(record)
 
     def check_unpaid_bills(self, utility):
-        for entry in self.db.get_utility_record(utility):
+        records = self.db.get_utility_record(utility)
+        if not records:
+            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+        checker = False
+        for entry in records:
             if entry.paid is False:
+                checker = True
                 print(entry)
+        if not checker:
+            self._error_handler(message=f"You have no unpaid bills in {utility}.", destination="utility menu", utility=utility)
+
         self.utility_menu(utility, display=False)
 
     def pay_bill(self, utility):
         records = self.db.get_utility_record(utility)
+        if not records:
+            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+
         print("Who are you?")
         print(f"Enter '{self.user1_upper}' or '{self.user2_upper}'.")
         identity = self._input_handler(destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
@@ -227,17 +239,19 @@ class Application:
                     if intent == "yes":
                         if identity == self.user1:
                             entry.user1_paid = True
-                            self.db.pay_bill(entry)
-                            entry.note += f"{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
+                            entry.note += f"\n{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
 
                         elif identity == self.user2:
                             entry.user2_paid = True
-                            self.db.pay_bill(entry)
-                            entry.note += f"{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
+                            entry.note += f"\n{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
 
                         if entry.user1_paid is True and entry.user2_paid is True:
                             entry.paid = True
+                            self.db.pay_bill(entry)
                             print("This bill has been completely paid off!")
+
+                        else:
+                            self.db.pay_bill(entry)
 
                         print("You successfully paid your bill!")
                         print("Returning to main menu...")
@@ -276,7 +290,7 @@ class Application:
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent = input().lower()
-        print("*****")
+        print("****************************")
         print()
 
         if intent == 'main' or intent == 'back':
@@ -302,21 +316,32 @@ class Application:
         if message:
             print(message)
         print(f"Returning to {destination}.")
+        print()
+
+        utility = kwargs.get('utility')
         if destination == "bill payment":
-            self.pay_bill(kwargs.get('utility'))
+            self.pay_bill(utility)
         elif destination == "bill addition":
-            self.add_bill(kwargs.get('utility'))
+            self.add_bill(utility)
         elif destination == "bill removal":
-            self.remove_bill(kwargs.get('utility'))
+            self.remove_bill(utility)
         elif destination == "utility menu":
-            self.utility_menu(kwargs.get('utility'), display=kwargs.get('display'))
+            self.utility_menu(utility, display=kwargs.get('display'))
         else:
             self.main_menu()
 
 
 def main():
 
-    db = Database(test=True)
+    if not path.isfile('records.db'):
+        print("No records file found.  Beginning first time setup.")
+        print("Enter the name of the first user:")
+        user1 = input()
+        print("Enter the name of the second user:")
+        user2 = input()
+        db = Database(setup=True, user1=user1, user2=user2)
+    else:
+        db = Database(test=True)
     app = Application(db)
     app.intro()
 

@@ -3,7 +3,8 @@ from bill import Bill
 
 
 class Database:
-    def __init__(self, test=False):
+    def __init__(self, test=False, setup=False, **kwargs):
+
         if test is True:
             self.conn = sqlite3.connect(':memory:')
         else:
@@ -11,78 +12,34 @@ class Database:
 
         self.c = self.conn.cursor()
 
-        self.c.execute("""
-                CREATE TABLE bills (
-                id integer primary key,
-                utility text,
-                date text,
-                amount integer,
-                x_paid boolean,
-                j_paid boolean,
-                paid boolean,
-                note text
-                )""")
+        if setup is True or test is True:
+            if test is True:
+                kwargs = {'user1': 'TestUser1', 'user2': 'TestUser2'}
+            self.setup(kwargs)
 
-        self.c.execute("""
-                CREATE TABLE users (
-                id integer primary key,
-                name text
-                )""")
+    def setup(self, kwargs):
+        with self.conn:
+            self.c.execute("""
+                    CREATE TABLE bills (
+                    id integer primary key,
+                    utility text,
+                    date text,
+                    amount integer,
+                    x_paid integer,
+                    j_paid integer,
+                    paid integer,
+                    note text
+                    )""")
 
-        bills = [
+            self.c.execute("""
+                    CREATE TABLE users (
+                    id integer primary key,
+                    name text
+                    )""")
 
-            Bill("gas", "07-20", 2120, user1_paid=True, paid=True),
-            Bill("gas", "08-20", 4350, user1_paid=True, paid=True),
-            Bill("gas", "09-20", 3471, user1_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("gas", "10-20", 3498, user1_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("gas", "11-20", 2492, user1_paid=True, paid=True, note="Paid by Hakone hotel"),
-            Bill("gas", "12-20", 4088),
-            Bill("gas", "01-21", 4965),
-            Bill("gas", "02-21", 5022),
-            Bill("gas", "03-21", 6523),
-
-            Bill("electric", "05-20", 580, user1_paid=True, paid=True),
-            Bill("electric", "06-20", 5970, user1_paid=True, paid=True),
-            Bill("electric", "07-20", 7029, user1_paid=True, paid=True),
-            Bill("electric", "08-20", 8375, user1_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("electric", "09-20", 9321, user1_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("electric", "10-20", 5345, user1_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("electric", "11-20", 5251, user1_paid=True, paid=True, note="Paid November 28th by Hakone hotel"),
-            Bill("electric", "12-20", 4523, user1_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("electric", "01-21", 5852, user1_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("electric", "02-21", 5054),
-
-            Bill("water", "06-20", 2477, user1_paid=True, paid=True),
-            Bill("water", "07-20,08-20", 7411, user1_paid=True, paid=True),
-            Bill("water", "09-20,10-20", 6364, user1_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("water", "11-20,12-20", 7673, user1_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("water", "01-21,02-21", 8197, user1_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("water", "03-21,04-21", 8720),
-
-            Bill("rent", "05-20", 94000, user1_paid=True, paid=True),
-            Bill("rent", "06-20", 94000, user1_paid=True, paid=True),
-            Bill("rent", "07-20", 94000, user1_paid=True, paid=True),
-            Bill("rent", "08-20", 94000, user1_paid=True, paid=True),
-            Bill("rent", "09-20", 94000, user1_paid=True, paid=True),
-            Bill("rent", "10-20", 94000, user1_paid=True, paid=True, note="Paid October 4th 2020"),
-            Bill("rent", "11-20", 94000, user1_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip"),
-            Bill("rent", "12-20", 94000, user1_paid=True, paid=True, note="Paid by Hakone hotel"),
-            Bill("rent", "01-21", 94000, user1_paid=True, paid=True, note="Paid January 12th 2021"),
-            Bill("rent", "02-21", 94000, user1_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("rent", "03-21", 94000, user1_paid=True, paid=True, note="Paid March 1st 2021"),
-            Bill("rent", "04-21", 94000)
-        ]
-
-        for bill in bills:
-            self.add_bill(bill)
-
-        self.c.execute("""
-            INSERT INTO users VALUES(NULL, 'Jason')
-            """)
-
-        self.c.execute("""
-            INSERT INTO users VALUES(NULL, 'Xiaochen')
-            """)
+            self.c.execute("""
+                INSERT INTO users VALUES(NULL, :user1), (NULL, :user2)
+                """, {'user1': kwargs.get('user1'), 'user2': kwargs.get('user2')})
 
     def get_user(self, user_id):
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})

@@ -341,7 +341,7 @@ def main():
         user2 = input()
         db = Database(setup=True, user1=user1, user2=user2)
     else:
-        db = Database(test=True)
+        db = Database()
     app = Application(db)
     app.intro()
 

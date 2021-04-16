@@ -188,6 +188,28 @@ class Application:
         self.utility_menu(utility, display=False)
 
     def pay_bill(self, utility):
+
+        def payment(bill, user, multiple=False):
+            if user == self.user1:
+                bill.user1_paid = True
+                bill.note += f"\n{self.user1_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
+            else:
+                bill.user2_paid = True
+                bill.note += f"\n{self.user2_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
+
+            if bill.user1_paid is True and bill.user2_paid is True:
+                bill.paid = True
+                self.db.pay_bill(bill)
+                print(f"Bill ID {bill.id} has been completely paid off!")
+
+            else:
+                self.db.pay_bill(bill)
+
+            print("You successfully paid your bill!")
+            if multiple:
+                print("Returning to main menu...")
+                self.main_menu()
+
         records = self.db.get_utility_record(utility)
         if not records:
             self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -237,25 +259,7 @@ class Application:
                     intent = self._input_handler(destination="bill payment", utility=utility, boolean=True)
 
                     if intent == "yes":
-                        if identity == self.user1:
-                            entry.user1_paid = True
-                            entry.note += f"\n{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
-
-                        elif identity == self.user2:
-                            entry.user2_paid = True
-                            entry.note += f"\n{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
-
-                        if entry.user1_paid is True and entry.user2_paid is True:
-                            entry.paid = True
-                            self.db.pay_bill(entry)
-                            print("This bill has been completely paid off!")
-
-                        else:
-                            self.db.pay_bill(entry)
-
-                        print("You successfully paid your bill!")
-                        print("Returning to main menu...")
-                        self.main_menu()
+                        payment(entry, identity)
 
                     elif intent == "no":
                         self._error_handler(message=None)
@@ -266,22 +270,12 @@ class Application:
             self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
 
         elif len(intent_list) > 1:
-            for _id in intent_list:
+            for id_intent in intent_list:
                 for entry in records:
-                    if int(_id) == entry.id:
-                        if identity == self.user1:
-                            entry.user1_paid = True
-                            self.db.pay_bill(entry)
-                            entry.note += f"{self.user1_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
-                            print(f"You successfully paid your bill (ID:{entry.id})!")
+                    if int(id_intent) == entry.id:
+                        payment(entry, identity)
 
-                        elif identity == self.user2:
-                            entry.user2_paid = True
-                            self.db.pay_bill(entry)
-                            entry.note += f"{self.user2_upper} paid {entry.owed_amount} for bill (ID {entry.id}) on {self.today}, paying off their portion of the bill."
-                            print(f"You successfully paid your bill (ID:{entry.id})!")
-
-            self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
+            self._error_handler(message=None)
 
         else:
             self._error_handler(destination="bill payment", utility=utility)

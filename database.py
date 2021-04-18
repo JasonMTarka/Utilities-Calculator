@@ -1,4 +1,5 @@
 import sqlite3
+
 from bill import Bill
 
 
@@ -45,6 +46,10 @@ class Database:
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})
         return self.c.fetchone()[1]
 
+    def remove_utility(self, utility):
+        with self.conn:
+            self.c.execute("DELETE FROM bills WHERE utility=:utility", {"utility": utility})
+
     def add_bill(self, bill):
         with self.conn:
             self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
@@ -57,10 +62,6 @@ class Database:
             except AttributeError:
                 self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill})
 
-    def remove_utility(self, utility):
-        with self.conn:
-            self.c.execute("DELETE FROM bills WHERE utility=:utility", {"utility": utility})
-
     def pay_bill(self, bill):
         with self.conn:
             self.c.execute("""
@@ -72,11 +73,6 @@ class Database:
                 WHERE id = :id
                 """, {"user2_paid": bill.user2_paid, "user1_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note, "id": bill.id})
 
-    def pay_multiple_bills(self, bill_list):
-        with self.conn:
-            for bill in bill_list:
-                self.pay_bill(bill)
-
     def get_all_records(self):
         self.c.execute("SELECT * FROM bills")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
@@ -84,8 +80,10 @@ class Database:
 
     def get_record(self, bill):
         try:
+            # First check that bill is a Bill object
             self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill.id})
         except AttributeError:
+            # Next check that bill is a bill ID
             self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill})
 
         try:
@@ -133,7 +131,11 @@ class Database:
         return holder
 
     def _convert_to_object(self, record):
+        # Takes data from a database entry and converts it to a Bill object for use in the main application
         return Bill(record[1], record[2], record[3], user2_paid=record[4], user1_paid=record[5], paid=record[6], note=record[7], primary_key=record[0], user1=self.get_user(1), user2=self.get_user(2))
 
         # Example bill instantiation:
-        # Bill("electric", "10-20", 5345, user2_paid=True, user1_paid=True, paid=True, note="Paid November 7th, through (canceled) Okinawa trip")
+        # Bill("electric", "10-20", 5345, user1_paid=True, user2_paid=True, paid=True, note="Paid by credit card")
+
+        # Example database entry:
+        # (1, "rent", 04-21, 6350, 1, 0, 0, "Paid on 5-21")

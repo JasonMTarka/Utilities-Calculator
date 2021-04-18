@@ -8,9 +8,9 @@ from database import Database
 class Application:
     def __init__(self, db):
         self.db = db
-        self.user1_upper = self.db.get_user(1)
+        self.user1_upper = self.db.get_user(1)  # Upper is used for front-facing print strings
         self.user2_upper = self.db.get_user(2)
-        self.user1 = self.user1_upper.lower()
+        self.user1 = self.user1_upper.lower()  # Lower is used for variables and arguments
         self.user2 = self.user2_upper.lower()
 
     @property
@@ -32,16 +32,22 @@ class Application:
     def today(self):
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
-    def intro(self):
+    def start(self):
         system('cls')
         print()
         print(f"Welcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
         print(f"Today is {self.today}")
         self.main_menu()
 
+    def quit_program(self):
+        print("Closing program...")
+        self.db.conn.close()
+        quit()
+
     def main_menu(self):
-        print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
+        print("****************************")
         print()
+        print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
         print()
         print()
@@ -61,24 +67,23 @@ class Application:
             self.utility_menu(intent)
 
         elif intent == self.user1:
-            print(f"{self.user1_upper} owes", self.db.get_total_owed(self.user1))
-            print("Here are their unpaid bills:")
-            for entry in self.db.get_bills_owed(self.user1.lower()):
-                print(entry)
-            self.main_menu()
+            self.user_page(self.user1)
 
         elif intent == self.user2:
-            print(f"{self.user2_upper} owes ", self.db.get_total_owed(self.user2))
-            print("Here are their unpaid bills:")
-            for entry in self.db.get_bills_owed(self.user2):
-                print(entry)
-            self.main_menu()
+            self.user_page(self.user2)
 
         elif intent == "add utility":
             self.add_utility()
 
         elif intent == "remove utility":
             self.remove_utility()
+
+    def user_page(self, user):
+        print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
+        print("Here are their unpaid bills:")
+        for entry in self.db.get_bills_owed(user):
+            print(entry)
+        self.main_menu()
 
     def utility_menu(self, utility, display=True):
         if display:
@@ -125,11 +130,6 @@ class Application:
             self.redirect(message=f"{intent} has been removed.")
         else:
             self.redirect(message=None)
-
-    def quit_program(self):
-        print("Closing program...")
-        self.db.conn.close()
-        quit()
 
     def add_bill(self, utility):
         print()
@@ -290,6 +290,8 @@ class Application:
         intent = self.input_handler(destination="bill payment", utility=utility)
 
         intent_list = intent.split(" ")
+
+        # Paying by a single ID
         if len(intent_list) == 1:
             for entry in records:
                 if entry.id == int(intent):
@@ -310,6 +312,7 @@ class Application:
 
             self.redirect(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
 
+        # Paying by multiple IDs
         elif len(intent_list) > 1:
             for id_intent in intent_list:
                 for entry in records:
@@ -322,6 +325,11 @@ class Application:
             self.redirect(destination="bill payment", utility=utility)
 
     def input_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+        # Checks user inputs based on parameters and redirects them if their inputs are not valid.
+        # Following keyword arguments are accepted:
+        # boolean for yes / no inputs
+        # integer for integer inputs
+        # acceptable_inputs can be a list or set of valid inputs
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent = input().lower()
@@ -348,6 +356,7 @@ class Application:
         return intent
 
     def redirect(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+        # Sends users back to the specified destination and sends them an appropriate message.
         if message:
             print(message)
         print(f"Returning to {destination}.")
@@ -368,6 +377,7 @@ class Application:
 
 def main():
 
+    # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
     if not path.isfile('records.db'):
         print("No records file found.  Beginning first time setup.")
         print("Enter the name of the first user:")
@@ -378,7 +388,7 @@ def main():
     else:
         db = Database()
     app = Application(db)
-    app.intro()
+    app.start()
 
 
 if __name__ == "__main__":

@@ -55,7 +55,7 @@ class Application:
         print()
         print("You can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
-        intent = self._input_handler(acceptable_inputs=self.utilities + [self.user1, self.user2, 'add utility', 'remove utility'])
+        intent = self.input_handler(acceptable_inputs=self.utilities + [self.user1, self.user2, 'add utility', 'remove utility'])
 
         if intent in self.utilities:
             self.utility_menu(intent)
@@ -90,7 +90,7 @@ class Application:
         print("'pay bill' - Pay an outstanding bill.")
         print("'remove bill' - Remove a bill.")
 
-        intent = self._input_handler(destination='utility menu', acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'}, utility=utility, display=False)
+        intent = self.input_handler(destination='utility menu', acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'}, utility=utility, display=False)
 
         if intent == 'add bill':
             self.add_bill(utility)
@@ -105,11 +105,11 @@ class Application:
             self.remove_bill(utility)
 
         else:
-            self._error_handler()
+            self.redirect()
 
     def add_utility(self):
         print("What is the name of your new utility?")
-        intent = self._input_handler()
+        intent = self.input_handler()
         self.add_bill(intent)
 
     def remove_utility(self):
@@ -117,14 +117,14 @@ class Application:
         for utility in self.utilities:
             print(f"{utility[0].upper() + utility[1:]}")
         print("WARNING: removing a utility will also remove all bills associated with that utility!")
-        intent = self._input_handler()
+        intent = self.input_handler()
         print(f"Are you sure you want to remove {intent}?")
-        removal_intent = self._input_handler(boolean=True)
+        removal_intent = self.input_handler(boolean=True)
         if removal_intent:
             self.db.remove_utility(intent)
-            self._error_handler(message=f"{intent} has been removed.")
+            self.redirect(message=f"{intent} has been removed.")
         else:
-            self._error_handler(message=None)
+            self.redirect(message=None)
 
     def quit_program(self):
         print("Closing program...")
@@ -135,23 +135,23 @@ class Application:
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
-        amount_intent = self._input_handler(destination="bill addition", integer=True, utility=utility)
+        amount_intent = self.input_handler(destination="bill addition", integer=True, utility=utility)
 
         print("What month(s) is this bill for?")
         print("Enter the bill date like the following: '04-21' for April 9th.")
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
-        date_intent = self._input_handler()
+        date_intent = self.input_handler()
 
         print("Is there anything more you'd like to add?")
-        moreinfo_intent = self._input_handler(boolean=True)
+        moreinfo_intent = self.input_handler(boolean=True)
 
         if moreinfo_intent == "yes":
 
             print(f"Has {self.user1_upper} paid?")
-            j_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
+            j_intent = self.input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print(f"Has {self.user2_upper} paid?")
-            x_intent = self._input_handler(destination="bill addition", utility=utility, boolean=True)
+            x_intent = self.input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input().lower()
@@ -187,27 +187,27 @@ class Application:
     def remove_bill(self, utility):
         records = self.db.get_utility_record(utility)
         if not records:
-            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+            self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
 
         for record in records:
             print(record)
         print("Which bill would you like to remove?")
         print("Input bill ID:")
-        intent = self._input_handler(destination="bill removal", integer=True, utility=utility)
+        intent = self.input_handler(destination="bill removal", integer=True, utility=utility)
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
                 print(f"Will you remove this bill?")
-                intent = self._input_handler(destination="bill removal", boolean=True, utility=utility)
+                intent = self.input_handler(destination="bill removal", boolean=True, utility=utility)
 
                 if intent == "yes":
                     self.db.remove_bill(entry)
-                    self._error_handler(message=None)
+                    self.redirect(message=None)
                 else:
-                    self._error_handler(message="Returning to main menu.")
+                    self.redirect(message="Returning to main menu.")
 
-        self._error_handler(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
+        self.redirect(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
 
     def check_record(self, utility):
         for record in self.db.get_utility_record(utility):
@@ -216,14 +216,14 @@ class Application:
     def check_unpaid_bills(self, utility):
         records = self.db.get_utility_record(utility)
         if not records:
-            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+            self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
         checker = False
         for entry in records:
             if entry.paid is False:
                 checker = True
                 print(entry)
         if not checker:
-            self._error_handler(message=f"You have no unpaid bills in {utility}.", destination="utility menu", utility=utility)
+            self.redirect(message=f"You have no unpaid bills in {utility}.", destination="utility menu", utility=utility)
 
         self.utility_menu(utility, display=False)
 
@@ -252,11 +252,11 @@ class Application:
 
         records = self.db.get_utility_record(utility)
         if not records:
-            self._error_handler(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
+            self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
 
         print("Who are you?")
         print(f"Enter '{self.user1_upper}' or '{self.user2_upper}'.")
-        identity = self._input_handler(destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
+        identity = self.input_handler(destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
 
         if identity == self.user1:
             collector = []
@@ -266,7 +266,7 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self._error_handler(message=None))
+                print(self.redirect(message=None))
 
             for entry in collector:
                 print(entry)
@@ -279,7 +279,7 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self._error_handler(message=None))
+                print(self.redirect(message=None))
 
             for entry in collector:
                 print(entry)
@@ -287,7 +287,7 @@ class Application:
         print("Which bill would you like to pay?")
         print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
         print("Enter the ID:")
-        intent = self._input_handler(destination="bill payment", utility=utility)
+        intent = self.input_handler(destination="bill payment", utility=utility)
 
         intent_list = intent.split(" ")
         if len(intent_list) == 1:
@@ -296,19 +296,19 @@ class Application:
                     print(entry)
                     print(f"You owe {entry.owed_amount} yen.")
                     print(f"Will you pay your bill?")
-                    intent = self._input_handler(destination="bill payment", utility=utility, boolean=True)
+                    intent = self.input_handler(destination="bill payment", utility=utility, boolean=True)
 
                     if intent == "yes":
                         payment(entry, identity)
-                        self._error_handler(message=None)
+                        self.redirect(message=None)
 
                     elif intent == "no":
-                        self._error_handler(message=None)
+                        self.redirect(message=None)
 
                     else:
-                        self._error_handler(destination="bill payment", utility=utility)
+                        self.redirect(destination="bill payment", utility=utility)
 
-            self._error_handler(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
+            self.redirect(message="The inputted bill ID could not be found.", destination="bill payment", utility=utility)
 
         elif len(intent_list) > 1:
             for id_intent in intent_list:
@@ -316,12 +316,12 @@ class Application:
                     if int(id_intent) == entry.id:
                         payment(entry, identity)
 
-            self._error_handler(message=None)
+            self.redirect(message=None)
 
         else:
-            self._error_handler(destination="bill payment", utility=utility)
+            self.redirect(destination="bill payment", utility=utility)
 
-    def _input_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+    def input_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent = input().lower()
@@ -336,18 +336,18 @@ class Application:
             try:
                 intent = int(intent)
             except ValueError:
-                self._error_handler(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
+                self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('acceptable_inputs'):
             acceptable_inputs = kwargs.get('acceptable_inputs')
             if intent not in acceptable_inputs:
-                self._error_handler(message=message, destination=destination, utility=kwargs.get('utility'))
+                self.redirect(message=message, destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('boolean'):
             if intent not in {'yes', 'no'}:
-                self._error_handler(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'),)
+                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'),)
 
         return intent
 
-    def _error_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+    def redirect(self, message="Please enter a valid input.", destination="main menu", **kwargs):
         if message:
             print(message)
         print(f"Returning to {destination}.")

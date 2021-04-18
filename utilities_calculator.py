@@ -14,6 +14,13 @@ class Application:
         self.user2 = self.user2_upper.lower()
 
     @property
+    def utilities(self):
+        collector = []
+        for tupl in self.db.get_utilities():
+            collector.append(tupl[0])
+        return collector
+
+    @property
     def user1_owes(self):
         return self.db.get_total_owed(self.user1)
 
@@ -36,13 +43,21 @@ class Application:
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print()
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
-        print(f"Enter 'Rent', 'Gas', 'Electric', 'Water', '{self.user1_upper}', or '{self.user2_upper}':")
+        print()
+        print()
+        print(f"Enter 'Add utility' to enter a new utility and bill.")
+        print(f"Enter 'Remove utility' to remove a utility and all associated bills.")
+        print()
+        print(f"Enter '{self.user1_upper}', or '{self.user2_upper}' to see information for that user.")
+        print()
+        for utility in self.utilities:
+            print(f"'{utility[0].upper() + utility[1:]}' - Access your {utility} record.")
         print()
         print("You can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
-        intent = self._input_handler(acceptable_inputs={'rent', 'gas', 'electric', 'water', self.user1, self.user2})
+        intent = self._input_handler(acceptable_inputs=self.utilities + [self.user1, self.user2, 'add utility', 'remove utility'])
 
-        if intent in {'rent', 'gas', 'electric', 'water'}:
+        if intent in self.utilities:
             self.utility_menu(intent)
 
         elif intent == self.user1:
@@ -52,12 +67,18 @@ class Application:
                 print(entry)
             self.main_menu()
 
-        else:
+        elif intent == self.user2:
             print(f"{self.user2_upper} owes ", self.db.get_total_owed(self.user2))
             print("Here are their unpaid bills:")
             for entry in self.db.get_bills_owed(self.user2):
                 print(entry)
             self.main_menu()
+
+        elif intent == "add utility":
+            self.add_utility()
+
+        elif intent == "remove utility":
+            self.remove_utility()
 
     def utility_menu(self, utility, display=True):
         if display:
@@ -85,6 +106,25 @@ class Application:
 
         else:
             self._error_handler()
+
+    def add_utility(self):
+        print("What is the name of your new utility?")
+        intent = self._input_handler()
+        self.add_bill(intent)
+
+    def remove_utility(self):
+        print("What utility would you like to remove?")
+        for utility in self.utilities:
+            print(f"{utility[0].upper() + utility[1:]}")
+        print("WARNING: removing a utility will also remove all bills associated with that utility!")
+        intent = self._input_handler()
+        print(f"Are you sure you want to remove {intent}?")
+        removal_intent = self._input_handler(boolean=True)
+        if removal_intent:
+            self.db.remove_utility(intent)
+            self._error_handler(message=f"{intent} has been removed.")
+        else:
+            self._error_handler(message=None)
 
     def quit_program(self):
         print("Closing program...")
@@ -260,6 +300,7 @@ class Application:
 
                     if intent == "yes":
                         payment(entry, identity)
+                        self._error_handler(message=None)
 
                     elif intent == "no":
                         self._error_handler(message=None)

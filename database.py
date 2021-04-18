@@ -57,6 +57,10 @@ class Database:
             except AttributeError:
                 self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill})
 
+    def remove_utility(self, utility):
+        with self.conn:
+            self.c.execute("DELETE FROM bills WHERE utility=:utility", {"utility": utility})
+
     def pay_bill(self, bill):
         with self.conn:
             self.c.execute("""
@@ -88,6 +92,10 @@ class Database:
             return self._convert_to_object(self.c.fetchone())
         except TypeError:
             return None
+
+    def get_utilities(self):
+        self.c.execute("SELECT DISTINCT utility FROM bills")
+        return self.c.fetchall()
 
     def get_utility_record(self, utility):
         self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})

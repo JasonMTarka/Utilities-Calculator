@@ -376,7 +376,6 @@ class Application:
 
 
 def main():
-
     # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
     if not path.isfile('records.db'):
         print("No records file found.  Beginning first time setup.")

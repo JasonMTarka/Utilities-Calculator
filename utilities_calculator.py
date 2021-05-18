@@ -351,7 +351,7 @@ class Application:
                 self.redirect(message=message, destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('boolean'):
             if intent not in {'yes', 'no'}:
-                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'),)
+                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))
 
         return intent
 

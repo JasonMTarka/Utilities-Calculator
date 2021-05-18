@@ -154,7 +154,7 @@ class Application:
             x_intent = self.input_handler(destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
-            note_intent = input().lower()
+            note_intent = input()
             print("*****")
             print("Creating bill...")
 

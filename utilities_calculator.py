@@ -329,7 +329,7 @@ class Application:
         # Following keyword arguments are accepted:
         # boolean for yes / no inputs
         # integer for integer inputs
-        # acceptable_inputs can be a list or set of valid inputs
+        # acceptable_inputs can be a tuple, list, or set of valid inputs
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent = input().lower()

@@ -6,6 +6,7 @@ from bill import Bill
 class Database:
     def __init__(self, test=False, setup=False, **kwargs):
 
+        self.test = test
         if test is True:
             self.conn = sqlite3.connect(':memory:')
         else:
@@ -41,6 +42,17 @@ class Database:
             self.c.execute("""
                 INSERT INTO users VALUES(NULL, :user1), (NULL, :user2)
                 """, {'user1': kwargs.get('user1'), 'user2': kwargs.get('user2')})
+
+            if self.test is True:
+                self.c.execute("""
+                    INSERT INTO bills VALUES
+                    (NULL, "gas", "05-21", 2000, 1, 0, 0, "Note"),
+                    (NULL, "gas", "04-21", 3000, 1, 1, 1, "Note"),
+                    (NULL, "electric", "03-21", 4500, 0, 1, 0, "Note"),
+                    (NULL, "water", "02-21", 6211, 1, 0, 0, "Note"),
+                    (NULL, "travel", "01-21", 8799, 1, 1, 1, "Note"),
+                    (NULL, "gas", "12-20", 999, 0, 0, 0, "Note")
+                    """)
 
     def get_user(self, user_id):
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})

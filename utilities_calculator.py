@@ -141,8 +141,8 @@ class Application:
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
         date_intent = self.input_handler()
 
-        print("Is there anything more you'd like to add?")
-        moreinfo_intent = self.input_handler(boolean=True)
+        print("If you want to add more information, type 'yes'.  Otherwise, press any key to continue.")
+        moreinfo_intent = self.input_handler()
 
         if moreinfo_intent == "yes":
 
@@ -174,7 +174,7 @@ class Application:
 
             bill = Bill(utility, date_intent, amount_intent, user1_paid=j_intent, user2_paid=x_intent, paid=paid_intent, note=note_intent)
 
-        elif moreinfo_intent == "no":
+        else:
             print("Creating bill...")
             bill = Bill(utility, date_intent, amount_intent)
 

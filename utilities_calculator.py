@@ -8,10 +8,34 @@ from database import Database
 class Application:
     def __init__(self, db):
         self.db = db
-        self.user1_upper = self.db.get_user(1)  # Upper is used for front-facing print strings
+        self.user1_upper = self.db.get_user(1)  # Upper is used for user-facing print strings
         self.user2_upper = self.db.get_user(2)
         self.user1 = self.user1_upper.lower()  # Lower is used for variables and arguments
         self.user2 = self.user2_upper.lower()
+
+        self.utility_menu_options = {
+            'add bill': {'func': self.add_bill, 'description': "Add a new bill.", },
+            'check unpaid bills': {'func': self.check_unpaid_bills, 'description': "Check unpaid bills for a given utility."},
+            'pay bill': {'func': self.pay_bill, 'description': "Add a new bill."},
+            'remove bill': {'func': self.remove_bill, 'description': "Add a new bill."}
+        }
+
+    @property
+    def main_menu_options(self):
+        # Blank entry added before utilities for spacing
+        options = {
+            'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
+            'remove utility': {'func': self.remove_utility, 'description': "Remove a utility and all associated bills.", 'name': '"Remove Utility"'},
+            self.user1: {'func': self.user_page, 'description': f"See information for {self.user1_upper}", 'arg': self.user1, 'name': f'"{self.user1_upper}"'},
+            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'},
+            '': {'name': "", 'description': ""}
+        }
+
+        for utility in self.utilities:
+            options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
+
+        # Returns a dictionary of all possible menu options containing descriptions, names, and arguments
+        return options
 
     @property
     def utilities(self):
@@ -50,33 +74,19 @@ class Application:
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
         print()
-        print()
-        print(f"Enter 'Add utility' to enter a new utility and bill.")
-        print(f"Enter 'Remove utility' to remove a utility and all associated bills.")
-        print()
-        print(f"Enter '{self.user1_upper}', or '{self.user2_upper}' to see information for that user.")
-        print()
-        for utility in self.utilities:
-            print(f"'{utility[0].upper() + utility[1:]}' - Access your {utility} record.")
+        for key in self.main_menu_options.keys():
+            print(f"{self.main_menu_options.get(key).get('name')} - {self.main_menu_options.get(key).get('description')}")
         print()
         print("You can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
-        intent = self.input_handler(acceptable_inputs=self.utilities + [self.user1, self.user2, 'add utility', 'remove utility'])
+        intent = self.input_handler(acceptable_inputs=self.main_menu_options.keys())
 
-        if intent in self.utilities:
-            self.utility_menu(intent)
-
-        elif intent == self.user1:
-            self.user_page(self.user1)
-
-        elif intent == self.user2:
-            self.user_page(self.user2)
-
-        elif intent == "add utility":
-            self.add_utility()
-
-        elif intent == "remove utility":
-            self.remove_utility()
+        # Try block handles menu requests which require an argument
+        # Except block handles menu requests which do not require an argument
+        try:
+            self.main_menu_options.get(intent).get('func')(self.main_menu_options.get(intent).get('arg'))
+        except TypeError:
+            self.main_menu_options.get(intent).get('func')()
 
     def user_page(self, user):
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
@@ -90,27 +100,11 @@ class Application:
             self.check_record(utility)
         print(f"What would you like to do with {utility}?")
         print()
-        print("'add bill' - Add a new bill.")
-        print("'check unpaid bills' - Check unpaid bills for a given utility.")
-        print("'pay bill' - Pay an outstanding bill.")
-        print("'remove bill' - Remove a bill.")
+        for key in self.utility_menu_options.keys():
+            print(f"{key} - {self.utility_menu_options.get(key).get('description')}")
 
-        intent = self.input_handler(destination='utility menu', acceptable_inputs={'add bill', 'check unpaid bills', 'pay bill', 'remove bill'}, utility=utility, display=False)
-
-        if intent == 'add bill':
-            self.add_bill(utility)
-
-        elif intent == 'check unpaid bills':
-            self.check_unpaid_bills(utility)
-
-        elif intent == 'pay bill':
-            self.pay_bill(utility)
-
-        elif intent == 'remove bill':
-            self.remove_bill(utility)
-
-        else:
-            self.redirect()
+        intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
+        self.utility_menu_options.get(intent).get('func')(utility)
 
     def add_utility(self):
         print("What is the name of your new utility?")
@@ -229,7 +223,7 @@ class Application:
 
     def pay_bill(self, utility):
 
-        def payment(bill, user, multiple=False):
+        def payment(bill, user):
             if user == self.user1:
                 bill.user1_paid = True
                 bill.note += f"\n{self.user1_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
@@ -246,9 +240,6 @@ class Application:
                 self.db.pay_bill(bill)
 
             print("You successfully paid your bill!")
-            if multiple:
-                print("Returning to main menu...")
-                self.main_menu()
 
         records = self.db.get_utility_record(utility)
         if not records:

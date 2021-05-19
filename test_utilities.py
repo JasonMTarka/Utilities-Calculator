@@ -128,12 +128,6 @@ class TestUtilityCalculator(unittest.TestCase):
             bill.user1_paid = True
             bill.paid = True
 
-        self.db.pay_multiple_bills(bill_list)
-
-        self.assertEqual(self.db.get_all_records()[0].paid, True)
-        self.assertEqual(self.db.get_all_records()[1].paid, True)
-        self.assertEqual(self.db.get_all_records()[2].paid, True)
-
     def test_get_utility_record(self):
 
         self.db.add_bill(self.bill_generator(utility='rent'))

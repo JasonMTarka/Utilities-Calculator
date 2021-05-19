@@ -13,11 +13,13 @@ class Application:
         self.user1 = self.user1_upper.lower()  # Lower is used for variables and arguments
         self.user2 = self.user2_upper.lower()
 
+        # Utility Menu is static, so only initialized once here in init.
+        # The other Main Menu is dynamic, so it is initialized below as a function with the property decorator.
         self.utility_menu_options = {
-            'add bill': {'func': self.add_bill, 'description': "Add a new bill.", },
-            'check unpaid bills': {'func': self.check_unpaid_bills, 'description': "Check unpaid bills for a given utility."},
-            'pay bill': {'func': self.pay_bill, 'description': "Add a new bill."},
-            'remove bill': {'func': self.remove_bill, 'description': "Add a new bill."}
+            'add bill': {'func': self.add_bill, 'description': "Add a new bill.", 'name': "'Add Bill'"},
+            'check unpaid bills': {'func': self.check_unpaid_bills, 'description': "Check unpaid bills for a given utility.", 'name': "'Check Unpaid Bills'"},
+            'pay bill': {'func': self.pay_bill, 'description': "Pay a bill.", 'name': "'Pay Bill'"},
+            'remove bill': {'func': self.remove_bill, 'description': "Remove a bill.", 'name': "'Remove Bill'"}
         }
 
     @property
@@ -34,7 +36,7 @@ class Application:
         for utility in self.utilities:
             options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
 
-        # Returns a dictionary of all possible menu options containing descriptions, names, and arguments
+        # Returns a dictionary of all possible menu options containing descriptions, corresponding functions, names, and arguments
         return options
 
     @property
@@ -75,7 +77,8 @@ class Application:
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
         print()
         for key in self.main_menu_options.keys():
-            print(f"{self.main_menu_options.get(key).get('name')} - {self.main_menu_options.get(key).get('description')}")
+            option = self.main_menu_options.get(key)
+            print(f"{option.get('name')} - {option.get('description')}")
         print()
         print("You can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
@@ -83,10 +86,11 @@ class Application:
 
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
+        option = self.main_menu_options.get(intent)
         try:
-            self.main_menu_options.get(intent).get('func')(self.main_menu_options.get(intent).get('arg'))
+            option.get('func')(option.get('arg'))
         except TypeError:
-            self.main_menu_options.get(intent).get('func')()
+            self.option.get('func')()
 
     def user_page(self, user):
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
@@ -101,7 +105,8 @@ class Application:
         print(f"What would you like to do with {utility}?")
         print()
         for key in self.utility_menu_options.keys():
-            print(f"{key} - {self.utility_menu_options.get(key).get('description')}")
+            option = self.utility_menu_options.get(key)
+            print(f"{option.get('name')} - {option.get('description')}")
 
         intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
         self.utility_menu_options.get(intent).get('func')(utility)

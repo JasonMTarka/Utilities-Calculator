@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 from os import system, path
 from typing import Optional
@@ -69,9 +70,8 @@ class Application:
         self.main_menu()
 
     def quit_program(self):
-        print("Closing program...")
         self.db.conn.close()
-        quit()
+        sys.exit("Closing program...")
 
     def main_menu(self):
         print("****************************")

@@ -7,6 +7,7 @@ from database import Database
 
 # Remaining functions without type hints currently cause errors if type-hinted, to be resolved later
 
+
 class Application:
     def __init__(self, db: Database) -> None:
         self.db = db

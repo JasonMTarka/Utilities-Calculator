@@ -1,5 +1,5 @@
 import sqlite3
-from typing import Optional, Union, overload, List, Any
+from typing import Optional, Any
 
 from bill import Bill
 
@@ -86,7 +86,7 @@ class Database:
                 WHERE id = :id
                 """, {"user2_paid": bill.user2_paid, "user1_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note, "id": bill.id})
 
-    def get_all_records(self) -> List[Bill]:
+    def get_all_records(self) -> list[Bill]:
         self.c.execute("SELECT * FROM bills")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
@@ -108,22 +108,22 @@ class Database:
         self.c.execute("SELECT DISTINCT utility FROM bills")
         return self.c.fetchall()
 
-    def get_utility_record(self, utility: Optional[str]) -> List[Bill]:
+    def get_utility_record(self, utility: Optional[str]) -> list[Bill]:
         self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_unpaid_bills(self) -> List[Bill]:
+    def get_unpaid_bills(self) -> list[Bill]:
         self.c.execute("SELECT * FROM bills WHERE paid=False")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_paid_bills(self) -> List[Bill]:
+    def get_paid_bills(self) -> list[Bill]:
         self.c.execute("SELECT * FROM bills WHERE paid=True")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_bills_owed(self, person: Optional[str]) -> List[Bill]:
+    def get_bills_owed(self, person: Optional[str]) -> list[Bill]:
         if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:

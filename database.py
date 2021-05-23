@@ -1,10 +1,11 @@
 import sqlite3
+from typing import Optional, Union, overload, List, Any
 
 from bill import Bill
 
 
 class Database:
-    def __init__(self, test=False, setup=False, **kwargs):
+    def __init__(self, test: bool = False, setup: bool = False, **kwargs) -> None:
 
         self.test = test
         if test is True:
@@ -19,7 +20,7 @@ class Database:
                 kwargs = {'user1': 'TestUser1', 'user2': 'TestUser2'}
             self.setup(kwargs)
 
-    def setup(self, kwargs):
+    def setup(self, kwargs) -> None:
         with self.conn:
             self.c.execute("""
                     CREATE TABLE bills (
@@ -54,27 +55,27 @@ class Database:
                     (NULL, "gas", "12-20", 999, 0, 0, 0, "Note")
                     """)
 
-    def get_user(self, user_id):
+    def get_user(self, user_id: int) -> str:
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})
         return self.c.fetchone()[1]
 
-    def remove_utility(self, utility):
+    def remove_utility(self, utility: str) -> None:
         with self.conn:
             self.c.execute("DELETE FROM bills WHERE utility=:utility", {"utility": utility})
 
-    def add_bill(self, bill):
+    def add_bill(self, bill: Bill) -> None:
         with self.conn:
             self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
                            {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.user2_paid, "j_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note})
 
-    def remove_bill(self, bill):
+    def remove_bill(self, bill: Any) -> None:
         with self.conn:
             try:
                 self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
             except AttributeError:
                 self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill})
 
-    def pay_bill(self, bill):
+    def pay_bill(self, bill: Bill) -> None:
         with self.conn:
             self.c.execute("""
                 UPDATE bills
@@ -85,12 +86,12 @@ class Database:
                 WHERE id = :id
                 """, {"user2_paid": bill.user2_paid, "user1_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note, "id": bill.id})
 
-    def get_all_records(self):
+    def get_all_records(self) -> List[Bill]:
         self.c.execute("SELECT * FROM bills")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_record(self, bill):
+    def get_record(self, bill) -> Any:
         try:
             # First check that bill is a Bill object
             self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill.id})
@@ -103,26 +104,26 @@ class Database:
         except TypeError:
             return None
 
-    def get_utilities(self):
+    def get_utilities(self) -> list:
         self.c.execute("SELECT DISTINCT utility FROM bills")
         return self.c.fetchall()
 
-    def get_utility_record(self, utility):
+    def get_utility_record(self, utility: Optional[str]) -> List[Bill]:
         self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_unpaid_bills(self):
+    def get_unpaid_bills(self) -> List[Bill]:
         self.c.execute("SELECT * FROM bills WHERE paid=False")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_paid_bills(self):
+    def get_paid_bills(self) -> List[Bill]:
         self.c.execute("SELECT * FROM bills WHERE paid=True")
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_bills_owed(self, person):
+    def get_bills_owed(self, person: Optional[str]) -> List[Bill]:
         if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:
@@ -131,18 +132,18 @@ class Database:
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_total_owed(self, person):
+    def get_total_owed(self, person: Optional[str]) -> float:
         if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:
             self.c.execute("SELECT * FROM bills WHERE x_paid=False")
         records = self.c.fetchall()
-        holder = 0
+        holder = 0.0
         for bill in records:
             holder += int(bill[3]) / 2
         return holder
 
-    def _convert_to_object(self, record):
+    def _convert_to_object(self, record) -> Bill:
         # Takes data from a database entry and converts it to a Bill object for use in the main application
         return Bill(record[1], record[2], record[3], user2_paid=record[4], user1_paid=record[5], paid=record[6], note=record[7], primary_key=record[0], user1=self.get_user(1), user2=self.get_user(2))
 

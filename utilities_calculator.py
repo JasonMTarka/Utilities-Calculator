@@ -1,12 +1,13 @@
 from datetime import datetime
 from os import system, path
+from typing import Optional
 
 from bill import Bill
 from database import Database
 
 
 class Application:
-    def __init__(self, db):
+    def __init__(self, db: Database) -> None:
         self.db = db
         self.user1_upper = self.db.get_user(1)  # Upper is used for user-facing print strings
         self.user2_upper = self.db.get_user(2)
@@ -23,7 +24,7 @@ class Application:
         }
 
     @property
-    def main_menu_options(self):
+    def main_menu_options(self) -> dict:
         # Blank entry added before utilities for spacing
         options = {
             'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
@@ -40,22 +41,22 @@ class Application:
         return options
 
     @property
-    def utilities(self):
+    def utilities(self) -> list:
         collector = []
         for tupl in self.db.get_utilities():
             collector.append(tupl[0])
         return collector
 
     @property
-    def user1_owes(self):
+    def user1_owes(self) -> float:
         return self.db.get_total_owed(self.user1)
 
     @property
-    def user2_owes(self):
+    def user2_owes(self) -> float:
         return self.db.get_total_owed(self.user2)
 
     @property
-    def today(self):
+    def today(self) -> str:
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
     def start(self):
@@ -90,9 +91,9 @@ class Application:
         try:
             option.get('func')(option.get('arg'))
         except TypeError:
-            self.option.get('func')()
+            option.get('func')()
 
-    def user_page(self, user):
+    def user_page(self, user: str):
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
@@ -111,12 +112,12 @@ class Application:
         intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
         self.utility_menu_options.get(intent).get('func')(utility)
 
-    def add_utility(self):
+    def add_utility(self) -> None:
         print("What is the name of your new utility?")
         intent = self.input_handler()
         self.add_bill(intent)
 
-    def remove_utility(self):
+    def remove_utility(self) -> None:
         print("What utility would you like to remove?")
         for utility in self.utilities:
             print(f"{utility[0].upper() + utility[1:]}")
@@ -130,7 +131,7 @@ class Application:
         else:
             self.redirect(message=None)
 
-    def add_bill(self, utility):
+    def add_bill(self, utility: Optional[str]) -> None:
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
@@ -183,7 +184,7 @@ class Application:
         print("Returning to main menu...")
         self.main_menu()
 
-    def remove_bill(self, utility):
+    def remove_bill(self, utility: Optional[str]) -> None:
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -208,11 +209,11 @@ class Application:
 
         self.redirect(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
 
-    def check_record(self, utility):
+    def check_record(self, utility: Optional[str]) -> None:
         for record in self.db.get_utility_record(utility):
             print(record)
 
-    def check_unpaid_bills(self, utility):
+    def check_unpaid_bills(self, utility: Optional[str]) -> None:
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -226,9 +227,9 @@ class Application:
 
         self.utility_menu(utility, display=False)
 
-    def pay_bill(self, utility):
+    def pay_bill(self, utility: Optional[str]) -> None:
 
-        def payment(bill, user):
+        def payment(bill: Bill, user: str) -> None:
             if user == self.user1:
                 bill.user1_paid = True
                 bill.note += f"\n{self.user1_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
@@ -262,7 +263,7 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self.redirect(message=None))
+                self.redirect(message=None)
 
             for entry in collector:
                 print(entry)
@@ -275,7 +276,7 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                print(self.redirect(message=None))
+                self.redirect(message=None)
 
             for entry in collector:
                 print(entry)
@@ -351,7 +352,7 @@ class Application:
 
         return intent
 
-    def redirect(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+    def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: Optional[str] = "main menu", **kwargs) -> None:
         # Sends users back to the specified destination and sends them an appropriate message.
         if message:
             print(message)
@@ -371,7 +372,7 @@ class Application:
             self.main_menu()
 
 
-def main():
+def main() -> None:
     # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
     if not path.isfile('records.db'):
         print("No records file found.  Beginning first time setup.")

@@ -1,8 +1,8 @@
-
+from typing import Optional
 
 class Bill:
 
-    def __init__(self, utility, date, amount, user1_paid=False, user2_paid=False, paid=False, note="", primary_key=1, **kwargs):
+    def __init__(self, utility: Optional[str], date: str, amount: int, user1_paid: bool = False, user2_paid: bool = False, paid: bool = False, note: str = "", primary_key: int = 1, **kwargs) -> None:
 
         self.utility = utility
         self.amount = amount
@@ -34,14 +34,14 @@ class Bill:
         self.id = primary_key
         self.kwargs = kwargs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"""
             Bill({self.utility}, {self.date}, {self.amount},
             user2_paid={self.user2_paid}, user1_paid={self.user1_paid},
             paid={self.paid}, note={self.note}, primary_key={self.id})
             """
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.user1_paid is True:
             j = "paid"
         else:

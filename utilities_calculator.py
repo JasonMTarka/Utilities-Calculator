@@ -1,7 +1,7 @@
 import sys
 from datetime import datetime
 from os import system, path
-from typing import Optional, Any
+from typing import Optional, Any, Union, Iterable
 
 from bill import Bill
 from database import Database
@@ -84,7 +84,8 @@ class Application:
                 print()
                 continue
             option = self.main_menu_options.get(key)
-            print(f"{option.get('name')} - {option.get('description')}")  # type: ignore
+            assert option is not None
+            print(f"{option.get('name')} - {option.get('description')}")
 
         print("\nYou can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
@@ -93,6 +94,7 @@ class Application:
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
         option = self.main_menu_options.get(intent)
+        assert option is not None
         try:
             option.get('func')(option.get('arg'))  # type: ignore
         except TypeError:
@@ -112,7 +114,8 @@ class Application:
         print()
         for key in self.utility_menu_options.keys():
             option = self.utility_menu_options.get(key)
-            print(f"{option.get('name')} - {option.get('description')}")  # type: ignore
+            assert option is not None
+            print(f"{option.get('name')} - {option.get('description')}")
 
         intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
         self.utility_menu_options.get(intent).get('func')(utility)  # type: ignore
@@ -327,7 +330,7 @@ class Application:
         else:
             self.redirect(destination="bill payment", utility=utility)
 
-    def input_handler(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Any):
+    def input_handler(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Union[str, int, bool, Iterable]) -> Any:
         # Checks user inputs based on parameters and redirects them if their inputs are not valid.
         # Following keyword arguments are accepted:
         # boolean for yes / no inputs
@@ -335,7 +338,7 @@ class Application:
         # acceptable_inputs can be a tuple, list, or set of valid inputs
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
-        intent = input().lower()
+        intent: Union[int, str] = input().lower()
         print("****************************")
         print()
 
@@ -345,9 +348,9 @@ class Application:
             self.quit_program()
         if kwargs.get('integer'):
             try:
-                intent = int(intent)  # type: ignore
+                intent = int(intent)
             except ValueError:
-                self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))  # type: ignore
+                self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('acceptable_inputs'):
             acceptable_inputs = kwargs.get('acceptable_inputs')
             if intent not in acceptable_inputs:  # type: ignore
@@ -358,7 +361,7 @@ class Application:
 
         return intent
 
-    def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: str) -> None:
+    def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Any) -> None:
         # Sends users back to the specified destination and sends them an appropriate message.
         if message:
             print(message)

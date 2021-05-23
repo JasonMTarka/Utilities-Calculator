@@ -1,11 +1,11 @@
 import sqlite3
-from typing import Optional, Any
+from typing import Any
 
 from bill import Bill
 
 
 class Database:
-    def __init__(self, test: bool = False, setup: bool = False, **kwargs) -> None:
+    def __init__(self, test: bool = False, setup: bool = False, **kwargs: str) -> None:
 
         self.test = test
         if test is True:
@@ -20,7 +20,7 @@ class Database:
                 kwargs = {'user1': 'TestUser1', 'user2': 'TestUser2'}
             self.setup(kwargs)
 
-    def setup(self, kwargs) -> None:
+    def setup(self, kwargs: dict) -> None:
         with self.conn:
             self.c.execute("""
                     CREATE TABLE bills (
@@ -108,7 +108,7 @@ class Database:
         self.c.execute("SELECT DISTINCT utility FROM bills")
         return self.c.fetchall()
 
-    def get_utility_record(self, utility: Optional[str]) -> list[Bill]:
+    def get_utility_record(self, utility: str) -> list[Bill]:
         self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
@@ -123,7 +123,7 @@ class Database:
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_bills_owed(self, person: Optional[str]) -> list[Bill]:
+    def get_bills_owed(self, person: str) -> list[Bill]:
         if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:
@@ -132,7 +132,7 @@ class Database:
         collector = [self._convert_to_object(record) for record in self.c.fetchall()]
         return collector
 
-    def get_total_owed(self, person: Optional[str]) -> float:
+    def get_total_owed(self, person: str) -> float:
         if person == self.get_user(1).lower():
             self.c.execute("SELECT * FROM bills WHERE j_paid=False")
         else:

@@ -1,12 +1,12 @@
 import sys
 from datetime import datetime
 from os import system, path
-from typing import Optional
+from typing import Optional, Any
 
 from bill import Bill
 from database import Database
 
-# Remaining functions without type hints currently cause errors if type-hinted, to be resolved later
+# Mypy does not like my implementation of menus or redirects, so I type check ignore all lines dealing with menus with '# type: ignore'.
 
 
 class Application:
@@ -26,22 +26,12 @@ class Application:
             'remove bill': {'func': self.remove_bill, 'description': "Remove a bill.", 'name': "'Remove Bill'"}
         }
 
-    @property
-    def main_menu_options(self) -> dict:
-        # Blank entry added before utilities for spacing
-        options = {
+        self.main_menu_options = {
             'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
             'remove utility': {'func': self.remove_utility, 'description': "Remove a utility and all associated bills.", 'name': '"Remove Utility"'},
             self.user1: {'func': self.user_page, 'description': f"See information for {self.user1_upper}", 'arg': self.user1, 'name': f'"{self.user1_upper}"'},
-            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'},
-            '': {'name': "", 'description': ""}
+            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'}
         }
-
-        for utility in self.utilities:
-            options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
-
-        # Returns a dictionary of all possible menu options containing descriptions, corresponding functions, names, and arguments
-        return options
 
     @property
     def utilities(self) -> list:
@@ -62,28 +52,41 @@ class Application:
     def today(self) -> str:
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
-    def start(self):
+    def update_main_menu_options(self, removed_utility: Optional[str] = None) -> None:
+        if removed_utility:
+            self.main_menu_options.pop(removed_utility)
+        else:
+            for utility in self.utilities:
+                if utility not in self.main_menu_options.keys():
+                    self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
+
+    def start(self) -> None:
         system('cls')
         print()
         print(f"Welcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
         print(f"Today is {self.today}")
         self.main_menu()
 
-    def quit_program(self):
+    def quit_program(self) -> None:
         self.db.conn.close()
         sys.exit("Closing program...")
 
-    def main_menu(self):
-        print("****************************")
-        print()
+    def main_menu(self) -> None:
+        self.update_main_menu_options()
+        print("****************************\n")
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
-        print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.")
-        print()
-        for key in self.main_menu_options.keys():
+        print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.\n")
+
+        keys_list = list(self.main_menu_options.keys())
+        keys_list.insert(4, 'spacer')
+        for key in keys_list:
+            if key == 'spacer':
+                print()
+                continue
             option = self.main_menu_options.get(key)
-            print(f"{option.get('name')} - {option.get('description')}")
-        print()
-        print("You can return to this page by entering 'main' at any point.")
+            print(f"{option.get('name')} - {option.get('description')}")  # type: ignore
+
+        print("\nYou can return to this page by entering 'main' at any point.")
         print("You can also quit this program at any point by entering 'quit'.")
         intent = self.input_handler(acceptable_inputs=self.main_menu_options.keys())
 
@@ -91,28 +94,28 @@ class Application:
         # Except block handles menu requests which do not require an argument
         option = self.main_menu_options.get(intent)
         try:
-            option.get('func')(option.get('arg'))
+            option.get('func')(option.get('arg'))  # type: ignore
         except TypeError:
-            option.get('func')()
+            option.get('func')()  # type: ignore
 
-    def user_page(self, user: str):
+    def user_page(self, user: str) -> None:
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
             print(entry)
         self.main_menu()
 
-    def utility_menu(self, utility, display=True):
+    def utility_menu(self, utility: str, display=True) -> None:
         if display:
             self.check_record(utility)
         print(f"What would you like to do with {utility}?")
         print()
         for key in self.utility_menu_options.keys():
             option = self.utility_menu_options.get(key)
-            print(f"{option.get('name')} - {option.get('description')}")
+            print(f"{option.get('name')} - {option.get('description')}")  # type: ignore
 
         intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
-        self.utility_menu_options.get(intent).get('func')(utility)
+        self.utility_menu_options.get(intent).get('func')(utility)  # type: ignore
 
     def add_utility(self) -> None:
         print("What is the name of your new utility?")
@@ -129,11 +132,12 @@ class Application:
         removal_intent = self.input_handler(boolean=True)
         if removal_intent:
             self.db.remove_utility(intent)
+            self.update_main_menu_options(removed_utility=intent)
             self.redirect(message=f"{intent} has been removed.")
         else:
             self.redirect(message=None)
 
-    def add_bill(self, utility: Optional[str]) -> None:
+    def add_bill(self, utility: str) -> None:
         print()
         print("How much is the bill for?")
         print("Enter the amount in yen:")
@@ -186,7 +190,7 @@ class Application:
         print("Returning to main menu...")
         self.main_menu()
 
-    def remove_bill(self, utility: Optional[str]) -> None:
+    def remove_bill(self, utility: str) -> None:
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -211,11 +215,11 @@ class Application:
 
         self.redirect(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
 
-    def check_record(self, utility: Optional[str]) -> None:
+    def check_record(self, utility: str) -> None:
         for record in self.db.get_utility_record(utility):
             print(record)
 
-    def check_unpaid_bills(self, utility: Optional[str]) -> None:
+    def check_unpaid_bills(self, utility: str) -> None:
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -229,7 +233,7 @@ class Application:
 
         self.utility_menu(utility, display=False)
 
-    def pay_bill(self, utility: Optional[str]) -> None:
+    def pay_bill(self, utility: str) -> None:
 
         def payment(bill: Bill, user: str) -> None:
             if user == self.user1:
@@ -323,7 +327,7 @@ class Application:
         else:
             self.redirect(destination="bill payment", utility=utility)
 
-    def input_handler(self, message="Please enter a valid input.", destination="main menu", **kwargs):
+    def input_handler(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Any):
         # Checks user inputs based on parameters and redirects them if their inputs are not valid.
         # Following keyword arguments are accepted:
         # boolean for yes / no inputs
@@ -341,20 +345,20 @@ class Application:
             self.quit_program()
         if kwargs.get('integer'):
             try:
-                intent = int(intent)
+                intent = int(intent)  # type: ignore
             except ValueError:
-                self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
+                self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))  # type: ignore
         if kwargs.get('acceptable_inputs'):
             acceptable_inputs = kwargs.get('acceptable_inputs')
-            if intent not in acceptable_inputs:
-                self.redirect(message=message, destination=destination, utility=kwargs.get('utility'))
+            if intent not in acceptable_inputs:  # type: ignore
+                self.redirect(message=message, destination=destination, utility=kwargs.get('utility'))  # type: ignore
         if kwargs.get('boolean'):
-            if intent not in {'yes', 'no'}:
-                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))
+            if intent not in ('yes', 'no'):
+                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))  # type: ignore
 
         return intent
 
-    def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: Optional[str] = "main menu", **kwargs) -> None:
+    def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: str) -> None:
         # Sends users back to the specified destination and sends them an appropriate message.
         if message:
             print(message)
@@ -363,19 +367,18 @@ class Application:
 
         utility = kwargs.get('utility')
         if destination == "bill payment":
-            self.pay_bill(utility)
+            self.pay_bill(utility)  # type: ignore
         elif destination == "bill addition":
-            self.add_bill(utility)
+            self.add_bill(utility)  # type: ignore
         elif destination == "bill removal":
-            self.remove_bill(utility)
+            self.remove_bill(utility)  # type: ignore
         elif destination == "utility menu":
-            self.utility_menu(utility, display=kwargs.get('display'))
+            self.utility_menu(utility, display=kwargs.get('display'))  # type: ignore
         else:
             self.main_menu()
 
 
 def main() -> None:
-    # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
     if not path.isfile('records.db'):
         print("No records file found.  Beginning first time setup.")
         print("Enter the name of the first user:")
@@ -384,7 +387,7 @@ def main() -> None:
         user2 = input()
         db = Database(setup=True, user1=user1, user2=user2)
     else:
-        db = Database()
+        db = Database()  # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
     app = Application(db)
     app.start()
 

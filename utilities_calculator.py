@@ -17,8 +17,6 @@ class Application:
         self.user1 = self.user1_upper.lower()  # Lower is used for variables and arguments
         self.user2 = self.user2_upper.lower()
 
-        # Utility Menu is static, so only initialized once here in init.
-        # The other Main Menu is dynamic, so it is initialized below as a function with the property decorator.
         self.utility_menu_options = {
             'add bill': {'func': self.add_bill, 'description': "Add a new bill.", 'name': "'Add Bill'"},
             'check unpaid bills': {'func': self.check_unpaid_bills, 'description': "Check unpaid bills for a given utility.", 'name': "'Check Unpaid Bills'"},

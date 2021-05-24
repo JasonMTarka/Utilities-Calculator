@@ -56,7 +56,8 @@ class Application:
         else:
             for utility in self.utilities:
                 if utility not in self.main_menu_options.keys():
-                    self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
+                    self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"',
+                                                       'description': f"Access your {utility} record."}
 
     def start(self) -> None:
         system('cls')
@@ -85,9 +86,8 @@ class Application:
             assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
-        print("\nYou can return to this page by entering 'main' at any point.")
-        print("You can also quit this program at any point by entering 'quit'.")
-        intent = self.input_handler(acceptable_inputs=self.main_menu_options.keys())
+        intent = self.input_handler(prompt="\nYou can return to this page by entering 'main' at any point.\nYou can also quit this program at any point by entering 'quit'.",
+                                    acceptable_inputs=self.main_menu_options.keys())
 
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
@@ -115,22 +115,21 @@ class Application:
             assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
-        intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(), utility=utility, display=False)
+        intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(),
+                                    utility=utility, display=False)
+
         self.utility_menu_options.get(intent).get('func')(utility)  # type: ignore
 
     def add_utility(self) -> None:
-        print("What is the name of your new utility?")
-        intent = self.input_handler()
+        intent = self.input_handler(prompt="What is the name of your new utility?")
         self.add_bill(intent)
 
     def remove_utility(self) -> None:
         print("What utility would you like to remove?")
         for utility in self.utilities:
             print(f"{utility[0].upper() + utility[1:]}")
-        print("WARNING: removing a utility will also remove all bills associated with that utility!")
-        intent = self.input_handler()
-        print(f"Are you sure you want to remove {intent}?")
-        removal_intent = self.input_handler(boolean=True)
+        intent = self.input_handler(prompt="WARNING: removing a utility will also remove all bills associated with that utility!")
+        removal_intent = self.input_handler(prompt=f"Are you sure you want to remove {intent}?", boolean=True)
         if removal_intent:
             self.db.remove_utility(intent)
             self.update_main_menu_options(removed_utility=intent)
@@ -139,26 +138,19 @@ class Application:
             self.redirect(message=None)
 
     def add_bill(self, utility: str) -> None:
-        print()
-        print("How much is the bill for?")
-        print("Enter the amount in yen:")
-        amount_intent = self.input_handler(destination="bill addition", integer=True, utility=utility)
+        amount_intent = self.input_handler(prompt="\nHow much is the bill for?\nEnter the amount in yen:",
+                                           destination="bill addition", integer=True, utility=utility)
 
         print("What month(s) is this bill for?")
         print("Enter the bill date like the following: '04-21' for April 9th.")
         print("In the event that there is more than one month listed, please list with a ',' between the dates.")
         date_intent = self.input_handler()
-
-        print("If you want to add more information, type 'yes'.  Otherwise, press any key to continue.")
-        moreinfo_intent = self.input_handler()
+        moreinfo_intent = self.input_handler(prompt="If you want to add more information, type 'yes'.  Otherwise, press any key to continue.")
 
         if moreinfo_intent == "yes":
 
-            print(f"Has {self.user1_upper} paid?")
-            j_intent = self.input_handler(destination="bill addition", utility=utility, boolean=True)
-
-            print(f"Has {self.user2_upper} paid?")
-            x_intent = self.input_handler(destination="bill addition", utility=utility, boolean=True)
+            j_intent = self.input_handler(prompt=f"Has {self.user1_upper} paid?", destination="bill addition", utility=utility, boolean=True)
+            x_intent = self.input_handler(prompt=f"Has {self.user2_upper} paid?", destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input()
@@ -198,15 +190,14 @@ class Application:
 
         for record in records:
             print(record)
-        print("Which bill would you like to remove?")
-        print("Input bill ID:")
-        intent = self.input_handler(destination="bill removal", integer=True, utility=utility)
+
+        intent = self.input_handler(prompt="Which bill would you like to remove?\nInput bill ID:",
+                                    destination="bill removal", integer=True, utility=utility)
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
-                print(f"Will you remove this bill?")
-                intent = self.input_handler(destination="bill removal", boolean=True, utility=utility)
+                intent = self.input_handler(prompt=f"Will you remove this bill?", destination="bill removal", boolean=True, utility=utility)
 
                 if intent == "yes":
                     self.db.remove_bill(entry)
@@ -258,9 +249,8 @@ class Application:
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
 
-        print("Who are you?")
-        print(f"Enter '{self.user1_upper}' or '{self.user2_upper}'.")
-        identity = self.input_handler(destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
+        identity = self.input_handler(prompt=f"Who are you?\nEnter '{self.user1_upper}' or '{self.user2_upper}'.",
+                                      destination="bill payment", acceptable_inputs={self.user1, self.user2}, utility=utility)
 
         if identity == self.user1:
             collector = []
@@ -288,10 +278,8 @@ class Application:
             for entry in collector:
                 print(entry)
 
-        print("Which bill would you like to pay?")
-        print("You can pay multiple bills at once by entering multiple IDs separated by a space.")
-        print("Enter the ID:")
-        intent = self.input_handler(destination="bill payment", utility=utility)
+        intent = self.input_handler(prompt="Which bill would you like to pay?\nYou can pay multiple bills at once by entering multiple IDs separated by a space.\nEnter the ID:",
+                                    destination="bill payment", utility=utility)
 
         intent_list = intent.split(" ")
 
@@ -299,10 +287,8 @@ class Application:
         if len(intent_list) == 1:
             for entry in records:
                 if entry.id == int(intent):
-                    print(entry)
-                    print(f"You owe {entry.owed_amount} yen.")
-                    print(f"Will you pay your bill?")
-                    intent = self.input_handler(destination="bill payment", utility=utility, boolean=True)
+                    intent = self.input_handler(prompt=f"{entry}\nYou owe {entry.owed_amount} yen\nWill you pay your bill?",
+                                                destination="bill payment", utility=utility, boolean=True)
 
                     if intent == "yes":
                         payment(entry, identity)
@@ -328,12 +314,16 @@ class Application:
         else:
             self.redirect(destination="bill payment", utility=utility)
 
-    def input_handler(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Union[str, int, bool, Iterable]) -> Any:
-        # Checks user inputs based on parameters and redirects them if their inputs are not valid.
-        # Following keyword arguments are accepted:
-        # boolean for yes / no inputs
-        # integer for integer inputs
-        # acceptable_inputs can be a tuple, list, or set of valid inputs
+    def input_handler(self, prompt: Optional[str] = None, error_msg: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Union[str, int, bool, Iterable]) -> Any:
+        '''
+        Checks user inputs based on parameters and redirects them if their inputs are not valid.
+        Following keyword arguments are accepted:
+        boolean for yes / no inputs
+        integer for integer inputs
+        acceptable_inputs can be a tuple, list, or set of valid inputs
+        '''
+        if prompt:
+            print(prompt)
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent: Union[int, str] = input().lower()
@@ -352,7 +342,7 @@ class Application:
         if kwargs.get('acceptable_inputs'):
             acceptable_inputs = kwargs.get('acceptable_inputs')
             if intent not in acceptable_inputs:  # type: ignore
-                self.redirect(message=message, destination=destination, utility=kwargs.get('utility'))  # type: ignore
+                self.redirect(message=error_msg, destination=destination, utility=kwargs.get('utility'))  # type: ignore
         if kwargs.get('boolean'):
             if intent not in ('yes', 'no'):
                 self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))  # type: ignore

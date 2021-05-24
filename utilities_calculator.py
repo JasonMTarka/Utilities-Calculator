@@ -61,8 +61,7 @@ class Application:
 
     def start(self) -> None:
         system('cls')
-        print()
-        print(f"Welcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
+        print(f"\nWelcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
         print(f"Today is {self.today}")
         self.main_menu()
 
@@ -108,8 +107,8 @@ class Application:
     def utility_menu(self, utility: str, display=True) -> None:
         if display:
             self.check_record(utility)
-        print(f"What would you like to do with {utility}?")
-        print()
+        print(f"What would you like to do with {utility}?\n")
+
         for key in self.utility_menu_options.keys():
             option = self.utility_menu_options.get(key)
             assert option is not None
@@ -327,8 +326,7 @@ class Application:
         if kwargs.get('boolean'):
             print("Enter 'yes' or 'no'.")
         intent: Union[int, str] = input().lower()
-        print("****************************")
-        print()
+        print("****************************\n")
 
         if intent == 'main' or intent == 'back':
             self.main_menu()
@@ -353,8 +351,7 @@ class Application:
         # Sends users back to the specified destination and sends them an appropriate message.
         if message:
             print(message)
-        print(f"Returning to {destination}.")
-        print()
+        print(f"Returning to {destination}.\n")
 
         utility = kwargs.get('utility')
         if destination == "bill payment":

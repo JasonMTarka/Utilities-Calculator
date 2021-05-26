@@ -72,9 +72,9 @@ class Application:
         main_menu_shortlist = list(self.main_menu_options)[4:]
         utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
 
-        if len(utilities_shortlist) != len(main_menu_shortlist):
+        if len(utilities_shortlist) > len(main_menu_shortlist):
             check_for_new_utils()
-        if len(utilities_shortlist) < len(main_menu_shortlist):
+        elif len(utilities_shortlist) < len(main_menu_shortlist):
             check_for_removed_utils()
 
     def start(self) -> None:

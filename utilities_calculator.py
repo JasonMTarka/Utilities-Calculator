@@ -54,15 +54,26 @@ class Application:
     def today(self) -> str:
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
-    # This update function is run at each opening of the main menu and when a utility is removed.
-    def update_main_menu_options(self, removed_utility: Optional[str] = None) -> None:
-        if removed_utility:
-            self.main_menu_options.pop(removed_utility)
-        else:
+    # This update function is run at each opening of the main menu.
+    def update_main_menu_options(self) -> None:
+
+        def check_for_new_utils() -> None:
             for utility in self.utilities:
                 if utility not in self.main_menu_options.keys():
-                    self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility, 'name': f'"{utility[0].upper() + utility[1:]}"',
-                                                       'description': f"Access your {utility} record."}
+                    self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility,
+                                                       'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
+
+        def check_for_removed_utils() -> None:
+            main_menu_shortlist = list(self.main_menu_options)[4:]
+            utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
+
+            if len(utilities_shortlist) < len(main_menu_shortlist):
+                for option in main_menu_shortlist:
+                    if option not in utilities_shortlist:
+                        self.main_menu_options.pop(option)
+
+        check_for_new_utils()
+        check_for_removed_utils()
 
     def start(self) -> None:
         system('cls')
@@ -76,6 +87,8 @@ class Application:
 
     def main_menu(self) -> None:
         self.update_main_menu_options()
+        if self.db.test is True:
+            print("------DEBUGGING MODE!------")
         print("****************************\n")
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.\n")
@@ -136,7 +149,6 @@ class Application:
         removal_intent = self.input_handler(prompt=f"Are you sure you want to remove {intent}?", boolean=True)
         if removal_intent:
             self.db.remove_utility(intent)
-            self.update_main_menu_options(removed_utility=intent)
             self.redirect(message=f"{intent} has been removed.")
         else:
             self.redirect(message=None)

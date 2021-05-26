@@ -58,13 +58,13 @@ class Application:
     # This update function is run at each opening of the main menu.
     def update_main_menu_options(self) -> None:
 
-        def check_for_new_utils() -> None:
+        def add_new_utils() -> None:
             for utility in self.utilities:
                 if utility not in self.main_menu_options.keys():
                     self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility,
                                                        'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
 
-        def check_for_removed_utils() -> None:
+        def remove_utils() -> None:
             for option in main_menu_shortlist:
                 if option not in utilities_shortlist:
                     self.main_menu_options.pop(option)
@@ -73,9 +73,9 @@ class Application:
         utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
 
         if len(utilities_shortlist) > len(main_menu_shortlist):
-            check_for_new_utils()
+            add_new_utils()
         elif len(utilities_shortlist) < len(main_menu_shortlist):
-            check_for_removed_utils()
+            remove_utils()
 
     def start(self) -> None:
         system('cls')

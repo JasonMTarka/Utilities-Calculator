@@ -6,8 +6,11 @@ from typing import Optional, Any, Union, Iterable
 from bill import Bill
 from database import Database
 
-# Mypy does not like my implementation of menus, so I type check ignore all lines dealing with menus with '# type: ignore'.
+'''
+You can enter test mode by passing in a 'test' argument into the command line.
 
+Mypy does not like my implementation of menus, so I type check ignore all lines dealing with menus with '# type: ignore'.
+'''
 
 class Application:
 
@@ -357,7 +360,10 @@ class Application:
         print(f"Returning to {destination}.\n")
 
         utility = kwargs.get('utility')
+        if utility is None:
+            self.main_menu()
         assert utility is not None
+
         if destination == "bill payment":
             self.pay_bill(utility)
         elif destination == "bill addition":
@@ -366,12 +372,15 @@ class Application:
             self.remove_bill(utility)
         elif destination == "utility menu":
             self.utility_menu(utility, display=kwargs.get('display'))
-        else:
-            self.main_menu()
-
 
 def main() -> None:
-    if not path.isfile('records.db'):
+
+    test = False
+    for cl_arg in sys.argv[1:]:
+        if cl_arg == "test":
+            test = True
+
+    if not path.isfile('records.db') and test is False:
         print("No records file found.  Beginning first time setup.")
         print("Enter the name of the first user:")
         user1 = input()
@@ -379,7 +388,8 @@ def main() -> None:
         user2 = input()
         db = Database(setup=True, user1=user1, user2=user2)
     else:
-        db = Database()  # Passing in a "test=True" argument to Database will instead open an in-memory database for testing purposes
+        db = Database(test=test)
+
     app = Application(db)
     app.start()
 

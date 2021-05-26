@@ -28,6 +28,7 @@ class Application:
             'remove bill': {'func': self.remove_bill, 'description': "Remove a bill.", 'name': "'Remove Bill'"}
         }
 
+        # Main menu options are updated to include utility names by 'update_main_menu_options' method below.
         self.main_menu_options = {
             'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
             'remove utility': {'func': self.remove_utility, 'description': "Remove a utility and all associated bills.", 'name': '"Remove Utility"'},
@@ -64,16 +65,17 @@ class Application:
                                                        'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
 
         def check_for_removed_utils() -> None:
-            main_menu_shortlist = list(self.main_menu_options)[4:]
-            utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
+            for option in main_menu_shortlist:
+                if option not in utilities_shortlist:
+                    self.main_menu_options.pop(option)
 
-            if len(utilities_shortlist) < len(main_menu_shortlist):
-                for option in main_menu_shortlist:
-                    if option not in utilities_shortlist:
-                        self.main_menu_options.pop(option)
+        main_menu_shortlist = list(self.main_menu_options)[4:]
+        utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
 
-        check_for_new_utils()
-        check_for_removed_utils()
+        if len(utilities_shortlist) != len(main_menu_shortlist):
+            check_for_new_utils()
+        if len(utilities_shortlist) < len(main_menu_shortlist):
+            check_for_removed_utils()
 
     def start(self) -> None:
         system('cls')

@@ -6,10 +6,11 @@ from typing import Optional, Any, Union, Iterable
 from bill import Bill
 from database import Database
 
-# Mypy does not like my implementation of menus or redirects, so I type check ignore all lines dealing with menus with '# type: ignore'.
+# Mypy does not like my implementation of menus, so I type check ignore all lines dealing with menus with '# type: ignore'.
 
 
 class Application:
+
     def __init__(self, db: Database) -> None:
         self.db = db
         self.user1_upper = self.db.get_user(1)  # Upper is used for user-facing print strings
@@ -50,6 +51,7 @@ class Application:
     def today(self) -> str:
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
+    # This update function is run at each opening of the main menu and when a utility is removed.
     def update_main_menu_options(self, removed_utility: Optional[str] = None) -> None:
         if removed_utility:
             self.main_menu_options.pop(removed_utility)
@@ -316,7 +318,7 @@ class Application:
     def input_handler(self, prompt: Optional[str] = None, error_msg: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Union[str, int, bool, Iterable]) -> Any:
         '''
         Checks user inputs based on parameters and redirects them if their inputs are not valid.
-        Following keyword arguments are accepted:
+        Following keyword arguments are supported:
         boolean for yes / no inputs
         integer for integer inputs
         acceptable_inputs can be a tuple, list, or set of valid inputs
@@ -340,28 +342,30 @@ class Application:
         if kwargs.get('acceptable_inputs'):
             acceptable_inputs = kwargs.get('acceptable_inputs')
             if intent not in acceptable_inputs:  # type: ignore
-                self.redirect(message=error_msg, destination=destination, utility=kwargs.get('utility'))  # type: ignore
+                self.redirect(message=error_msg, destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('boolean'):
             if intent not in ('yes', 'no'):
-                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))  # type: ignore
+                self.redirect(message="Please enter 'yes' or 'no'.", destination=destination, utility=kwargs.get('utility'))
 
         return intent
 
+    # Sends users back to the specified destination and sends them an appropriate message.
     def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Any) -> None:
-        # Sends users back to the specified destination and sends them an appropriate message.
+
         if message:
             print(message)
         print(f"Returning to {destination}.\n")
 
         utility = kwargs.get('utility')
+        assert utility is not None
         if destination == "bill payment":
-            self.pay_bill(utility)  # type: ignore
+            self.pay_bill(utility)
         elif destination == "bill addition":
-            self.add_bill(utility)  # type: ignore
+            self.add_bill(utility)
         elif destination == "bill removal":
-            self.remove_bill(utility)  # type: ignore
+            self.remove_bill(utility)
         elif destination == "utility menu":
-            self.utility_menu(utility, display=kwargs.get('display'))  # type: ignore
+            self.utility_menu(utility, display=kwargs.get('display'))
         else:
             self.main_menu()
 

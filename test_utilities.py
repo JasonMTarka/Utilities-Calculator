@@ -1,5 +1,4 @@
 import unittest
-
 from random import choice, randint
 
 from bill import Bill
@@ -17,12 +16,12 @@ class TestUtilityCalculator(unittest.TestCase):
         cls.db.conn.close()
 
     def setUp(self):
-        pass
-
-    def tearDown(self):
         self.db.c.execute("""
         DELETE FROM bills
         """)
+
+    def tearDown(self):
+        pass
 
     def bill_generator(self, **kwargs):
         if kwargs.get('utility'):

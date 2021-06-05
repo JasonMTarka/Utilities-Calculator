@@ -90,6 +90,7 @@ class Application:
     def main_menu(self) -> None:
         self.update_main_menu_options()
         if self.db.test is True:
+            print("****************************\n")
             print("------DEBUGGING MODE!------")
         print("****************************\n")
         print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
@@ -105,8 +106,9 @@ class Application:
             assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
+        acceptable_inputs = set(self.main_menu_options.keys())
         intent = self.input_handler(prompt="\nYou can return to this page by entering 'main' at any point.\nYou can also quit this program at any point by entering 'quit'.",
-                                    acceptable_inputs=self.main_menu_options.keys())
+                                    acceptable_inputs=acceptable_inputs)
 
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
@@ -134,7 +136,8 @@ class Application:
             assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
-        intent = self.input_handler(destination='utility menu', acceptable_inputs=self.utility_menu_options.keys(),
+        acceptable_inputs = set(self.utility_menu_options.keys())
+        intent = self.input_handler(destination='utility menu', acceptable_inputs=acceptable_inputs,
                                     utility=utility, display=False)
 
         self.utility_menu_options.get(intent).get('func')(utility)  # type: ignore
@@ -338,7 +341,7 @@ class Application:
         Following keyword arguments are supported:
         boolean for yes / no inputs
         integer for integer inputs
-        acceptable_inputs can be a tuple, list, or set of valid inputs
+        acceptable_inputs can be a tuple, list, or set (preferred b/c hashing) of valid inputs
         '''
         if prompt:
             print(prompt)

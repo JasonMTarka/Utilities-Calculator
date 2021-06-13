@@ -7,7 +7,7 @@ from bill import Bill
 from database import Database
 
 '''
-You can enter test mode by passing in a 'test' argument into the command line.
+You can enter debug mode by passing in a '-debug' or '-d' argument into the command line.
 
 Mypy does not like my implementation of menus, so I type check ignore all lines dealing with menus with '# type: ignore'.
 '''
@@ -89,7 +89,7 @@ class Application:
 
     def main_menu(self) -> None:
         self.update_main_menu_options()
-        if self.db.test is True:
+        if self.db.debug is True:
             print("****************************\n")
             print("------DEBUGGING MODE!------")
         print("****************************\n")
@@ -238,7 +238,7 @@ class Application:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
         checker = False
         for entry in records:
-            if entry.paid is False:
+            if not entry.paid:
                 checker = True
                 print(entry)
         if not checker:
@@ -276,7 +276,7 @@ class Application:
         if identity == self.user1:
             collector = []
             for entry in records:
-                if entry.user1_paid is False:
+                if not entry.user1_paid:
                     collector.append(entry)
 
             if len(collector) == 0:
@@ -289,7 +289,7 @@ class Application:
         else:
             collector = []
             for entry in records:
-                if entry.user2_paid is False:
+                if not entry.user2_paid:
                     collector.append(entry)
 
             if len(collector) == 0:
@@ -392,12 +392,12 @@ class Application:
 
 def main() -> None:
 
-    test = False
+    debug = False
     for cl_arg in sys.argv[1:]:
-        if cl_arg == "test":
-            test = True
+        if cl_arg == "--debug" or cl_arg == "-d":
+            debug = True
 
-    if not path.isfile('records.db') and test is False:
+    if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")
         print("Enter the name of the first user:")
         user1 = input()
@@ -405,7 +405,7 @@ def main() -> None:
         user2 = input()
         db = Database(setup=True, user1=user1, user2=user2)
     else:
-        db = Database(test=test)
+        db = Database(debug=debug)
 
     app = Application(db)
     app.start()

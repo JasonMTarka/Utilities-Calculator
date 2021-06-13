@@ -5,18 +5,18 @@ from bill import Bill
 
 
 class Database:
-    def __init__(self, test: bool = False, setup: bool = False, **kwargs: str) -> None:
+    def __init__(self, debug: bool = False, setup: bool = False, **kwargs: str) -> None:
 
-        self.test = test
-        if test is True:
+        self.debug = debug
+        if debug is True:
             self.conn = sqlite3.connect(':memory:')
         else:
             self.conn = sqlite3.connect("records.db")
 
         self.c = self.conn.cursor()
 
-        if setup is True or test is True:
-            if test is True:
+        if setup is True or debug is True:
+            if debug is True:
                 kwargs = {'user1': 'TestUser1', 'user2': 'TestUser2'}
             self.setup(kwargs)
 
@@ -44,7 +44,7 @@ class Database:
                 INSERT INTO users VALUES(NULL, :user1), (NULL, :user2)
                 """, {'user1': kwargs.get('user1'), 'user2': kwargs.get('user2')})
 
-            if self.test is True:
+            if self.debug is True:
                 self.c.execute("""
                     INSERT INTO bills VALUES
                     (NULL, "gas", "05-21", 2000, 1, 0, 0, "Note"),

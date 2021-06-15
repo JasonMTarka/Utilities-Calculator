@@ -9,7 +9,7 @@ class TestUtilityCalculator(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.db = Database(test=True)
+        cls.db = Database(debug=True)
 
     @classmethod
     def tearDownClass(cls):

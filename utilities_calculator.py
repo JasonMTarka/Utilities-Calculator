@@ -35,8 +35,7 @@ class Application:
             'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
             'remove utility': {'func': self.remove_utility, 'description': "Remove a utility and all associated bills.", 'name': '"Remove Utility"'},
             self.user1: {'func': self.user_page, 'description': f"See information for {self.user1_upper}", 'arg': self.user1, 'name': f'"{self.user1_upper}"'},
-            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'},
-            'create backup': {'func': self.backup, 'description': "Make a backup of your records file.", 'name': '"Create Backup"'}
+            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'}
         }
 
         self._orig_main_menu_len = len(self.main_menu_options)  # Used for formatting the division between above options and utilities
@@ -129,11 +128,6 @@ class Application:
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
             print(entry)
-        self.main_menu()
-
-    def backup(self) -> None:
-        self.db.backup()
-        print("Backup has been created.")
         self.main_menu()
 
     def utility_menu(self, utility: str, display=True) -> None:
@@ -402,30 +396,44 @@ class Application:
 
 def main() -> None:
 
-    debug = False
+    def cmd_line_arg_handler() -> bool:  # returns True for debugging mode and False for regular operation
 
-    opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+        opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 
-    if "-h" in opts or "--help" in opts:
-        print("Utilities Calculator by Jason Tarka")
-        print("Accepted command line arguments:")
-        print('"-d" or "--debug": Enter debugging mode')
-        print('"-v" or "--version": Display version information')
-        print('"-r" or "--restore": Restore database backup')
-        sys.exit()
+        if opts:
 
-    if "-v" in opts or "--version" in opts:
-        print("Application version: 1.1.0")
-        print(f"Python version: {sys.version}")
-        sys.exit()
+            if "-h" in opts or "--help" in opts:
+                print("Utilities Calculator by Jason Tarka")
+                print("Accepted command line arguments:")
+                print('"-v" or "--version": Display version information')
+                print('"-b" or "--backup": Backup database')
+                print('"-r" or "--restore": Restore database from backup')
+                print('"-d" or "--debug": Enter debugging mode')
+                sys.exit()
 
-    if "-r" in opts or "--restore" in opts:
-        print("Restoring database from backup...")
-        copy2(f"{os.environ.get('Utilities-Calculator-Backup-Address')}/records.db", os.environ.get('Utilities-Calculator-Address'))
-        sys.exit()
+            if "-v" in opts or "--version" in opts:
+                print("Application version: 1.1.1")
+                print(f"Python version: {sys.version}")
+                sys.exit()
 
-    if "-d" in opts or "--debug" in opts:
-        debug = True
+            if "-b" in opts or "--backup" in opts:
+                print("Backing up database...")
+                address = os.environ.get("Utilities-Calculator-Backup-Address")
+                copy2("records.db", address)
+                print(f"Database has successfully been backed up to {address}.")
+                sys.exit()
+
+            if "-r" in opts or "--restore" in opts:
+                print("Restoring database from backup...")
+                copy2(f"{os.environ.get('Utilities-Calculator-Backup-Address')}/records.db", os.environ.get('Utilities-Calculator-Address'))
+                sys.exit()
+
+            if "-d" in opts or "--debug" in opts:
+                return True
+
+        return False
+
+    debug = cmd_line_arg_handler()
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

@@ -1,5 +1,7 @@
 import sqlite3
+import os
 from typing import Any
+from shutil import copy2
 
 from bill import Bill
 
@@ -54,6 +56,12 @@ class Database:
                     (NULL, "travel", "01-21", 8799, 1, 1, 1, "Note"),
                     (NULL, "gas", "12-20", 999, 0, 0, 0, "Note")
                     """)
+
+    def backup(self) -> None:
+        if not self.debug:
+            copy2("records.db", os.environ.get("Utilities-Calculator-Backup-Address"))
+        else:
+            pass
 
     def get_user(self, user_id: int) -> str:
         self.c.execute("SELECT * FROM users WHERE id=:id", {"id": user_id})

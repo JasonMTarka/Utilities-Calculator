@@ -132,3 +132,4 @@ recovery.py
 utilities_env/
 records.db
 records.db-journal
+*.db

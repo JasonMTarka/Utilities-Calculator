@@ -33,8 +33,11 @@ class Application:
             'add utility': {'func': self.add_utility, 'description': "Enter a new utility and bill.", 'name': '"Add Utility"'},
             'remove utility': {'func': self.remove_utility, 'description': "Remove a utility and all associated bills.", 'name': '"Remove Utility"'},
             self.user1: {'func': self.user_page, 'description': f"See information for {self.user1_upper}", 'arg': self.user1, 'name': f'"{self.user1_upper}"'},
-            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'}
+            self.user2: {'func': self.user_page, 'description': f"See information for {self.user2_upper}", 'arg': self.user2, 'name': f'"{self.user2_upper}"'},
+            'create backup': {'func': self.backup, 'description': "Make a backup of your records file.", 'name': '"Create Backup"'}
         }
+
+        self._orig_main_menu_len = len(self.main_menu_options)  # Used for formatting the division between above options and utilities
 
     @property
     def utilities(self) -> list:
@@ -69,7 +72,7 @@ class Application:
                 if option not in utilities_shortlist:
                     self.main_menu_options.pop(option)
 
-        main_menu_shortlist = list(self.main_menu_options)[4:]
+        main_menu_shortlist = list(self.main_menu_options)[self._orig_main_menu_len:]
         utilities_shortlist = [tpl[0] for tpl in self.db.get_utilities()]
 
         if len(utilities_shortlist) > len(main_menu_shortlist):
@@ -97,7 +100,7 @@ class Application:
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.\n")
 
         keys_list = list(self.main_menu_options.keys())
-        keys_list.insert(4, 'spacer')
+        keys_list.insert(self._orig_main_menu_len, 'spacer')
         for key in keys_list:
             if key == 'spacer':
                 print()
@@ -124,6 +127,11 @@ class Application:
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
             print(entry)
+        self.main_menu()
+
+    def backup(self) -> None:
+        self.db.backup()
+        print("Backup has been created.")
         self.main_menu()
 
     def utility_menu(self, utility: str, display=True) -> None:

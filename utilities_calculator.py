@@ -396,9 +396,11 @@ class Application:
 
 def main() -> None:
 
-    def cmd_line_arg_handler() -> bool:  # returns True for debugging mode and False for regular operation
+    def cmd_line_arg_handler() -> dict:
 
         opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+
+        cmd_line_args = {}
 
         if opts:
 
@@ -429,11 +431,11 @@ def main() -> None:
                 sys.exit()
 
             if "-d" in opts or "--debug" in opts:
-                return True
+                cmd_line_args["debug"] = True
 
-        return False
+        return cmd_line_args
 
-    debug = cmd_line_arg_handler()
+    debug = cmd_line_arg_handler().get("debug")
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

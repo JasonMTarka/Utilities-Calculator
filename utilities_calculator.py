@@ -401,9 +401,23 @@ class Application:
 def main() -> None:
 
     debug = False
-    for cl_arg in sys.argv[1:]:
-        if cl_arg == "--debug" or cl_arg == "-d":
-            debug = True
+
+    opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+
+    if "-v" in opts or "--version" in opts:
+        print("Application version: 1.0.0")
+        print(f"Python version: {sys.version}")
+        sys.exit()
+
+    if "-h" in opts or "--help" in opts:
+        print("Utilities Calculator by Jason Tarka")
+        print("Accepted command line arguments:")
+        print('"-d" - Enter debugging mode')
+        print('"-v" - Display version information')
+        sys.exit()
+
+    if "-d" in opts or "--debug" in opts:
+        debug = True
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

@@ -400,7 +400,7 @@ def main() -> None:
 
         opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 
-        cmd_line_args = {}
+        cmd_line_args = {"debug": False}
 
         if opts:
 
@@ -420,14 +420,18 @@ def main() -> None:
 
             if "-b" in opts or "--backup" in opts:
                 print("Backing up database...")
-                address = os.environ.get("Utilities-Calculator-Backup-Address")
-                copy2("records.db", address)
-                print(f"Database has successfully been backed up to {address}.")
+                destination_address = os.environ.get("Utilities-Calculator-Backup-Address")
+                assert destination_address is not None
+                copy2("records.db", destination_address)
+                print(f"Database has successfully been backed up to {destination_address}.")
                 sys.exit()
 
             if "-r" in opts or "--restore" in opts:
                 print("Restoring database from backup...")
-                copy2(f"{os.environ.get('Utilities-Calculator-Backup-Address')}/records.db", os.environ.get('Utilities-Calculator-Address'))
+                original_address = os.environ.get('Utilities-Calculator-Backup-Address')
+                destination_address = os.environ.get('Utilities-Calculator-Address')
+                assert destination_address is not None
+                copy2(f"{original_address}/records.db", destination_address)
                 sys.exit()
 
             if "-d" in opts or "--debug" in opts:
@@ -436,6 +440,7 @@ def main() -> None:
         return cmd_line_args
 
     debug = cmd_line_arg_handler().get("debug")
+    assert type(debug) is bool
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

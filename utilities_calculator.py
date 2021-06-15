@@ -2,7 +2,7 @@ import sys
 import os
 from datetime import datetime
 from os import system, path
-from typing import Optional, Any, Union, Iterable
+from typing import Optional, Any, Union, Iterable, TYPE_CHECKING
 from shutil import copy2
 
 from bill import Bill
@@ -107,7 +107,8 @@ class Application:
                 print()
                 continue
             option = self.main_menu_options.get(key)
-            assert option is not None
+            if TYPE_CHECKING:
+                assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
         acceptable_inputs = set(self.main_menu_options.keys())
@@ -117,7 +118,8 @@ class Application:
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
         option = self.main_menu_options.get(intent)
-        assert option is not None
+        if TYPE_CHECKING:
+            assert option is not None
         try:
             option.get('func')(option.get('arg'))  # type: ignore
         except TypeError:
@@ -137,7 +139,8 @@ class Application:
 
         for key in self.utility_menu_options.keys():
             option = self.utility_menu_options.get(key)
-            assert option is not None
+            if TYPE_CHECKING:
+                assert option is not None
             print(f"{option.get('name')} - {option.get('description')}")
 
         acceptable_inputs = set(self.utility_menu_options.keys())
@@ -383,7 +386,8 @@ class Application:
         utility = kwargs.get('utility')
         if utility is None:
             self.main_menu()
-        assert utility is not None
+        if TYPE_CHECKING:
+            assert utility is not None
 
         if destination == "bill payment":
             self.pay_bill(utility)
@@ -421,7 +425,8 @@ def main() -> None:
             if "-b" in opts or "--backup" in opts:
                 print("Backing up database...")
                 destination_address = os.environ.get("Utilities-Calculator-Backup-Address")
-                assert destination_address is not None
+                if TYPE_CHECKING:
+                    assert destination_address is not None
                 copy2("records.db", destination_address)
                 print(f"Database has successfully been backed up to {destination_address}.")
                 sys.exit()
@@ -430,7 +435,8 @@ def main() -> None:
                 print("Restoring database from backup...")
                 original_address = os.environ.get('Utilities-Calculator-Backup-Address')
                 destination_address = os.environ.get('Utilities-Calculator-Address')
-                assert destination_address is not None
+                if TYPE_CHECKING:
+                    assert destination_address is not None
                 copy2(f"{original_address}/records.db", destination_address)
                 sys.exit()
 
@@ -441,7 +447,8 @@ def main() -> None:
 
     cmd_line_args = cmd_line_arg_handler()
     debug = cmd_line_args.get("debug")
-    assert type(debug) is bool
+    if TYPE_CHECKING:
+        assert type(debug) is bool
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

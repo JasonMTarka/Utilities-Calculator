@@ -1,7 +1,9 @@
 import sys
+import os
 from datetime import datetime
 from os import system, path
 from typing import Optional, Any, Union, Iterable
+from shutil import copy2
 
 from bill import Bill
 from database import Database
@@ -404,16 +406,22 @@ def main() -> None:
 
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 
-    if "-v" in opts or "--version" in opts:
-        print("Application version: 1.0.0")
-        print(f"Python version: {sys.version}")
-        sys.exit()
-
     if "-h" in opts or "--help" in opts:
         print("Utilities Calculator by Jason Tarka")
         print("Accepted command line arguments:")
-        print('"-d" - Enter debugging mode')
-        print('"-v" - Display version information')
+        print('"-d" or "--debug": Enter debugging mode')
+        print('"-v" or "--version": Display version information')
+        print('"-r" or "--restore": Restore database backup')
+        sys.exit()
+
+    if "-v" in opts or "--version" in opts:
+        print("Application version: 1.1.0")
+        print(f"Python version: {sys.version}")
+        sys.exit()
+
+    if "-r" in opts or "--restore" in opts:
+        print("Restoring database from backup...")
+        copy2(f"{os.environ.get('Utilities-Calculator-Backup-Address')}/records.db", os.environ.get('Utilities-Calculator-Address'))
         sys.exit()
 
     if "-d" in opts or "--debug" in opts:

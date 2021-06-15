@@ -16,7 +16,7 @@ Mypy does not like my implementation of menus, so I type check ignore all lines 
 
 class Application:
 
-    def __init__(self, db: Database) -> None:
+    def __init__(self, db: Database) -> bool:
         self.db = db
         self.user1_upper = self.db.get_user(1)  # Upper is used for user-facing print strings
         self.user2_upper = self.db.get_user(2)

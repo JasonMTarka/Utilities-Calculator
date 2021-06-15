@@ -396,7 +396,7 @@ class Application:
 
 def main() -> None:
 
-    def cmd_line_arg_handler() -> bool:
+    def cmd_line_arg_handler() -> dict:
 
         opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 

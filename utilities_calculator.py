@@ -439,7 +439,8 @@ def main() -> None:
 
         return cmd_line_args
 
-    debug = cmd_line_arg_handler().get("debug")
+    cmd_line_args = cmd_line_arg_handler()
+    debug = cmd_line_args.get("debug")
     assert type(debug) is bool
 
     if not path.isfile('records.db') and not debug:

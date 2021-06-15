@@ -403,7 +403,7 @@ class Application:
 def main() -> None:
 
     debug = False
-    print("test")
+
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 
     if "-h" in opts or "--help" in opts:

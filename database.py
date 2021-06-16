@@ -86,8 +86,8 @@ class Database:
 
         with self.conn:
             self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
-                           {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.user2_paid,
-                            "j_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note})
+                           {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.user1_paid,
+                            "j_paid": bill.user2_paid, "paid": bill.paid, "note": bill.note})
 
     def remove_bill(self, bill: Any) -> None:
         """Remove a bill from the database."""

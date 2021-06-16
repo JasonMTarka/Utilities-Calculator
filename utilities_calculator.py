@@ -15,6 +15,8 @@ You can see a list of command line arguments by passing in a '--help' or '-h' fl
 class Application:
 
     def __init__(self, db: Database) -> None:
+        """Initialize database, get user information, set utility menu and main menu options."""
+
         self.db = db
         self.user1_upper = self.db.get_user(1)  # Upper is used for user-facing print strings
         self.user2_upper = self.db.get_user(2)
@@ -38,35 +40,41 @@ class Application:
 
         self._orig_main_menu_len = len(self.main_menu_options)  # Used for formatting the division between above options and utilities
 
-    @property
     def utilities(self) -> list:
-        collector = []
+        """Get a list of present utilities from the database."""
+
+        utilities = []
         for tupl in self.db.get_utilities():
-            collector.append(tupl[0])
-        return collector
+            utilities.append(tupl[0])
+        return utilities
 
-    @property
-    def user1_owes(self) -> float:
-        return self.db.get_total_owed(self.user1)
-
-    @property
-    def user2_owes(self) -> float:
-        return self.db.get_total_owed(self.user2)
-
-    @property
     def today(self) -> str:
+        """Return a formatted version of today's date."""
+
         return datetime.today().strftime('%B %d, %Y at %I:%M %p')
 
-    # This update function is run at each opening of the main menu.
+    def user_owes(self, user: int) -> float:
+        """Get total owed by a given user."""
+
+        if user == 1:
+            return self.db.get_total_owed(self.user1)
+        else:
+            return self.db.get_total_owed(self.user2)
+
     def update_main_menu_options(self) -> None:
+        """Reconcile main menu options with utilities present in database."""
 
         def add_new_utils() -> None:
-            for utility in self.utilities:
+            """Add new utilities to main menu options."""
+
+            for utility in self.utilities():
                 if utility not in self.main_menu_options.keys():
                     self.main_menu_options[utility] = {'func': self.utility_menu, 'arg': utility,
                                                        'name': f'"{utility[0].upper() + utility[1:]}"', 'description': f"Access your {utility} record."}
 
         def remove_utils() -> None:
+            """Remove utilities which have been removed from the database."""
+
             for option in main_menu_shortlist:
                 if option not in utilities_shortlist:
                     self.main_menu_options.pop(option)
@@ -80,22 +88,28 @@ class Application:
             remove_utils()
 
     def start(self) -> None:
+        """Display information on initial launch of application."""
+
         system('cls')
         print(f"\nWelcome to {self.user1_upper} and {self.user2_upper}'s utility calculator.")
-        print(f"Today is {self.today}")
+        print(f"Today is {self.today()}")
         self.main_menu()
 
     def quit_program(self) -> None:
+        """Close database connection and exit program."""
+
         self.db.conn.close()
         sys.exit("Closing program...")
 
     def main_menu(self) -> None:
+        """Display main menu."""
+
         self.update_main_menu_options()
         if self.db.debug is True:
             print("****************************\n")
             print("------DEBUGGING MODE!------")
         print("****************************\n")
-        print(f"{self.user1_upper} currently owes {self.user1_owes} yen and {self.user2_upper} currently owes {self.user2_owes} yen.")
+        print(f"{self.user1_upper} currently owes {self.user_owes(1)} yen and {self.user2_upper} currently owes {self.user_owes(2)} yen.")
         print(f"You can examine a particular utility or either {self.user1_upper} or {self.user2_upper}'s payment history.\n")
 
         keys_list = list(self.main_menu_options.keys())
@@ -125,6 +139,8 @@ class Application:
             option_func()
 
     def user_page(self, user: str) -> None:
+        """Display total owed by the user and their unpaid bills before returning to main menu."""
+
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
@@ -132,6 +148,8 @@ class Application:
         self.main_menu()
 
     def utility_menu(self, utility: str, display=True) -> None:
+        """Display utility menu options."""
+
         if display:
             self.check_record(utility)
         print(f"What would you like to do with {utility}?\n")
@@ -151,12 +169,16 @@ class Application:
         option_func(utility)
 
     def add_utility(self) -> None:
+        """Add a new utility to the database."""
+
         intent = self.input_handler(prompt="What is the name of your new utility?")
         self.add_bill(intent)
 
     def remove_utility(self) -> None:
+        """Remove a utility and all associated bills."""
+
         print("What utility would you like to remove?")
-        for utility in self.utilities:
+        for utility in self.utilities():
             print(f"{utility[0].upper() + utility[1:]}")
         intent = self.input_handler(prompt="WARNING: removing a utility will also remove all bills associated with that utility!")
         removal_intent = self.input_handler(prompt=f"Are you sure you want to remove {intent}?", boolean=True)
@@ -167,6 +189,8 @@ class Application:
             self.redirect(message=None)
 
     def add_bill(self, utility: str) -> None:
+        """Add a bill to the database."""
+
         amount_intent = self.input_handler(prompt="\nHow much is the bill for?\nEnter the amount in yen:",
                                            destination="bill addition", integer=True, utility=utility)
 
@@ -213,6 +237,8 @@ class Application:
         self.main_menu()
 
     def remove_bill(self, utility: str) -> None:
+        """Remove a bill from the database."""
+
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -237,10 +263,14 @@ class Application:
         self.redirect(message="The input bill ID could not be found.", destination="bill removal", utility=utility)
 
     def check_record(self, utility: str) -> None:
+        """Print all bills under a given utility."""
+
         for record in self.db.get_utility_record(utility):
             print(record)
 
     def check_unpaid_bills(self, utility: str) -> None:
+        """Print all unpaid bills under a given utility."""
+
         records = self.db.get_utility_record(utility)
         if not records:
             self.redirect(message=f"There are no bills in {utility}.", destination="utility menu", utility=utility)
@@ -255,14 +285,17 @@ class Application:
         self.utility_menu(utility, display=False)
 
     def pay_bill(self, utility: str) -> None:
+        """Pay a bill."""
 
         def payment(bill: Bill, user: str) -> None:
+            """Write new information to a bill object and then send it to the database to be paid."""
+
             if user == self.user1:
                 bill.user1_paid = True
-                bill.note += f"\n{self.user1_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
+                bill.note += f"\n{self.user1_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today()}, paying off their portion of the bill."
             else:
                 bill.user2_paid = True
-                bill.note += f"\n{self.user2_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today}, paying off their portion of the bill."
+                bill.note += f"\n{self.user2_upper} paid {bill.owed_amount} for bill (ID {bill.id}) on {self.today()}, paying off their portion of the bill."
 
             if bill.user1_paid is True and bill.user2_paid is True:
                 bill.paid = True
@@ -344,13 +377,12 @@ class Application:
             self.redirect(destination="bill payment", utility=utility)
 
     def input_handler(self, prompt: str = "", error_msg: str = "Please enter a valid input.", destination: str = "main menu", **kwargs) -> Any:
-        '''
-        Checks user inputs based on parameters and redirects them if their inputs are not valid.
+        """Checks user inputs based on parameters and redirects them if their inputs are not valid.
         Following keyword arguments are supported:
         boolean for yes / no inputs
         integer for integer inputs
         acceptable_inputs can be a tuple, list, or set (preferred b/c hashing) of valid inputs
-        '''
+        """
         if prompt:
             print(prompt)
         if kwargs.get('boolean'):
@@ -377,8 +409,8 @@ class Application:
 
         return intent
 
-    # Sends users back to the specified destination and sends them an appropriate message.
     def redirect(self, message: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Any) -> None:
+        """Send users back to the specified destination and send them an appropriate message."""
 
         if message:
             print(message)
@@ -397,9 +429,12 @@ class Application:
         elif destination == "utility menu":
             self.utility_menu(utility, display=kwargs.get('display'))
 
+
 def main() -> None:
+    """Start program."""
 
     def cmd_line_arg_handler() -> dict:
+        """Handle command line arguments."""
 
         opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
 

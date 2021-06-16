@@ -87,10 +87,8 @@ class TestUtilityCalculator(unittest.TestCase):
             amount -= 1
 
     def test_db_pay_bill(self):
-        bill = self.bill_generator(user1_paid=False, paid=False)
-
+        bill = self.bill_generator(user1_paid=False)
         self.db.add_bill(bill)
-
         self.assertEqual(self.db.get_all_records()[0].user1_paid, False)
         self.assertEqual(self.db.get_all_records()[0].paid, False)
 

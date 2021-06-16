@@ -3,6 +3,7 @@
 class Bill:
 
     def __init__(self, utility: str, date: str, amount: int, user1_paid: bool = False, user2_paid: bool = False, paid: bool = False, note: str = "", primary_key: int = 1, **kwargs) -> None:
+        """Create a bill object with the given values."""
 
         self.utility = utility
         self.amount = amount

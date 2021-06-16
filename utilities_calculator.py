@@ -2,16 +2,14 @@ import sys
 import os
 from datetime import datetime
 from os import system, path
-from typing import Optional, Any, Union, Iterable, TYPE_CHECKING
+from typing import Optional, Any, Union, TYPE_CHECKING
 from shutil import copy2
 
 from bill import Bill
 from database import Database
 
 '''
-You can enter debug mode by passing in a '-debug' or '-d' argument into the command line.
-
-Mypy does not like my implementation of menus, so I type check ignore all lines dealing with menus with '# type: ignore'.
+You can see a list of command line arguments by passing in a '--help' or '-h' flag into the command line.
 '''
 
 class Application:
@@ -106,24 +104,25 @@ class Application:
             if key == 'spacer':
                 print()
                 continue
-            option = self.main_menu_options.get(key)
-            if TYPE_CHECKING:
-                assert option is not None
+            option = self.main_menu_options.get(key, {})
+
             print(f"{option.get('name')} - {option.get('description')}")
 
         acceptable_inputs = set(self.main_menu_options.keys())
         intent = self.input_handler(prompt="\nYou can return to this page by entering 'main' at any point.\nYou can also quit this program at any point by entering 'quit'.",
                                     acceptable_inputs=acceptable_inputs)
 
+        option = self.main_menu_options.get(intent, {})
+        option_func = option.get('func')
+        if TYPE_CHECKING:
+            assert callable(option_func)
+
         # Try block handles menu requests which require an argument
         # Except block handles menu requests which do not require an argument
-        option = self.main_menu_options.get(intent)
-        if TYPE_CHECKING:
-            assert option is not None
         try:
-            option.get('func')(option.get('arg'))  # type: ignore
+            option_func(option.get('arg'))
         except TypeError:
-            option.get('func')()  # type: ignore
+            option_func()
 
     def user_page(self, user: str) -> None:
         print(f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user))
@@ -138,16 +137,18 @@ class Application:
         print(f"What would you like to do with {utility}?\n")
 
         for key in self.utility_menu_options.keys():
-            option = self.utility_menu_options.get(key)
-            if TYPE_CHECKING:
-                assert option is not None
+            option = self.utility_menu_options.get(key, {})
+
             print(f"{option.get('name')} - {option.get('description')}")
 
         acceptable_inputs = set(self.utility_menu_options.keys())
         intent = self.input_handler(destination='utility menu', acceptable_inputs=acceptable_inputs,
                                     utility=utility, display=False)
 
-        self.utility_menu_options.get(intent).get('func')(utility)  # type: ignore
+        option_func = self.utility_menu_options.get(intent, {}).get('func')
+        if TYPE_CHECKING:
+            assert callable(option_func)
+        option_func(utility)
 
     def add_utility(self) -> None:
         intent = self.input_handler(prompt="What is the name of your new utility?")
@@ -342,7 +343,7 @@ class Application:
         else:
             self.redirect(destination="bill payment", utility=utility)
 
-    def input_handler(self, prompt: Optional[str] = None, error_msg: Optional[str] = "Please enter a valid input.", destination: str = "main menu", **kwargs: Union[str, int, bool, Iterable]) -> Any:
+    def input_handler(self, prompt: str = "", error_msg: str = "Please enter a valid input.", destination: str = "main menu", **kwargs) -> Any:
         '''
         Checks user inputs based on parameters and redirects them if their inputs are not valid.
         Following keyword arguments are supported:
@@ -367,8 +368,8 @@ class Application:
             except ValueError:
                 self.redirect(message="Please enter an integer.", destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('acceptable_inputs'):
-            acceptable_inputs = kwargs.get('acceptable_inputs')
-            if intent not in acceptable_inputs:  # type: ignore
+            acceptable_inputs = kwargs.get('acceptable_inputs', set())
+            if intent not in acceptable_inputs:
                 self.redirect(message=error_msg, destination=destination, utility=kwargs.get('utility'))
         if kwargs.get('boolean'):
             if intent not in ('yes', 'no'):
@@ -383,11 +384,9 @@ class Application:
             print(message)
         print(f"Returning to {destination}.\n")
 
-        utility = kwargs.get('utility')
-        if utility is None:
+        utility = kwargs.get('utility', '')
+        if not utility:
             self.main_menu()
-        if TYPE_CHECKING:
-            assert utility is not None
 
         if destination == "bill payment":
             self.pay_bill(utility)
@@ -418,25 +417,21 @@ def main() -> None:
                 sys.exit()
 
             if "-v" in opts or "--version" in opts:
-                print("Application version: 1.1.1")
+                print("Application version: 1.1.2")
                 print(f"Python version: {sys.version}")
                 sys.exit()
 
             if "-b" in opts or "--backup" in opts:
                 print("Backing up database...")
-                destination_address = os.environ.get("Utilities-Calculator-Backup-Address")
-                if TYPE_CHECKING:
-                    assert destination_address is not None
+                destination_address = os.environ.get("Utilities-Calculator-Backup-Address", "")
                 copy2("records.db", destination_address)
                 print(f"Database has successfully been backed up to {destination_address}.")
                 sys.exit()
 
             if "-r" in opts or "--restore" in opts:
                 print("Restoring database from backup...")
-                original_address = os.environ.get('Utilities-Calculator-Backup-Address')
-                destination_address = os.environ.get('Utilities-Calculator-Address')
-                if TYPE_CHECKING:
-                    assert destination_address is not None
+                original_address = os.environ.get('Utilities-Calculator-Backup-Address', "")
+                destination_address = os.environ.get('Utilities-Calculator-Address', "")
                 copy2(f"{original_address}/records.db", destination_address)
                 sys.exit()
 
@@ -446,9 +441,7 @@ def main() -> None:
         return cmd_line_args
 
     cmd_line_args = cmd_line_arg_handler()
-    debug = cmd_line_args.get("debug")
-    if TYPE_CHECKING:
-        assert type(debug) is bool
+    debug = cmd_line_args.get("debug", False)
 
     if not path.isfile('records.db') and not debug:
         print("No records file found.  Beginning first time setup.")

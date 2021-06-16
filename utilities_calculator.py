@@ -4,6 +4,7 @@ from datetime import datetime
 from os import system, path
 from typing import Optional, Any, Union, TYPE_CHECKING
 from shutil import copy2
+from csv import writer
 
 from bill import Bill
 from database import Database
@@ -449,6 +450,7 @@ def main() -> None:
                 print('"-v" or "--version": Display version information')
                 print('"-b" or "--backup": Backup database')
                 print('"-r" or "--restore": Restore database from backup')
+                print('"-e" or "--export": Export a list of Bill objects for use in database recovery.')
                 print('"-d" or "--debug": Enter debugging mode')
                 sys.exit()
 
@@ -469,6 +471,20 @@ def main() -> None:
                 original_address = os.environ.get('Utilities-Calculator-Backup-Address', "")
                 destination_address = os.environ.get('Utilities-Calculator-Address', "")
                 copy2(f"{original_address}/records.db", destination_address)
+                sys.exit()
+
+            if "-e" in opts or "--export" in opts:
+                print("Exporting database entries...")
+                db = Database(debug=False)
+                all_records = db.get_all_records()
+
+                with open("bill_list.csv", "w", newline="") as file:
+                    csv_writer = writer(file)
+                    csv_writer.writerow(["bills ="])
+                    for record in all_records:
+                        csv_writer.writerow([record.__repr__()])
+
+                print("Database entries exported to CSV!")
                 sys.exit()
 
             if "-d" in opts or "--debug" in opts:

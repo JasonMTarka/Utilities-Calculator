@@ -36,22 +36,18 @@ class Bill:
         self.kwargs = kwargs
 
     def __repr__(self) -> str:
-        return f"""
-            Bill({self.utility}, {self.date}, {self.amount},
-            user2_paid={self.user2_paid}, user1_paid={self.user1_paid},
-            paid={self.paid}, note={self.note}, primary_key={self.id})
-            """
+        return f"Bill({self.utility}, {self.date}, {self.amount}, user1_paid={self.user1_paid}, user2_paid={self.user2_paid}, paid={self.paid}, note='{self.note}', primary_key={self.id})"
 
     def __str__(self) -> str:
         if self.user1_paid is True:
-            j = "paid"
+            user1_var = "paid"
         else:
-            j = "not paid yet"
+            user1_var = "not paid yet"
 
         if self.user2_paid is True:
-            x = "paid"
+            user2_var = "paid"
         else:
-            x = "not paid yet"
+            user2_var = "not paid yet"
 
         if self.kwargs.get('user1'):
             user1 = self.kwargs.get('user1')
@@ -64,7 +60,7 @@ class Bill:
 
         return f"""
 Date: {self.date}  A {self.utility} bill for {self.amount} yen.
-ID: {self.id}       {user1} has {j} and {user2} has {x}.
+ID: {self.id}       {user1} has {user1_var} and {user2} has {user2_var}.
 
 Notes: {self.note}
             """

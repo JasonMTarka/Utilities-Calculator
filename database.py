@@ -192,6 +192,6 @@ class Database:
     def _convert_to_object(self, record) -> Bill:
         """Take data from a database entry and converts it to a Bill object for use in the main application."""
 
-        result = NamedRecord(*record)
-        return Bill(result.utility, result.date, result.cost, user1_paid=result.user1_paid, user2_paid=result.user2_paid,
-                    paid=result.paid, note=result.note, primary_key=result.Id, user1=self.get_user(1), user2=self.get_user(2))
+        named_record = NamedRecord(*record)
+        return Bill(named_record.utility, named_record.date, named_record.cost, user1_paid=named_record.user1_paid, user2_paid=named_record.user2_paid,
+                    paid=named_record.paid, note=named_record.note, primary_key=named_record.Id, user1=self.get_user(1), user2=self.get_user(2))

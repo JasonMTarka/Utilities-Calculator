@@ -42,8 +42,8 @@ class Database:
                     utility text,
                     date text,
                     amount integer,
-                    x_paid integer,
-                    j_paid integer,
+                    user1_paid integer,
+                    user2_paid integer,
                     paid integer,
                     note text
                     )""")
@@ -61,12 +61,12 @@ class Database:
             if self.debug is True:
                 self.c.execute("""
                     INSERT INTO bills VALUES
-                    (NULL, "gas", "05-21", 2000, 1, 0, 0, "Note"),
-                    (NULL, "gas", "04-21", 3000, 1, 1, 1, "Note"),
-                    (NULL, "electric", "03-21", 4500, 0, 1, 0, "Note"),
-                    (NULL, "water", "02-21", 6211, 1, 0, 0, "Note"),
-                    (NULL, "travel", "01-21", 8799, 1, 1, 1, "Note"),
-                    (NULL, "gas", "12-20", 999, 0, 0, 0, "Note")
+                    (NULL, "gas", "05-21", 2000, 1, 0, 0, "Test Note"),
+                    (NULL, "gas", "04-21", 3000, 1, 1, 1, "Test Note"),
+                    (NULL, "electric", "03-21", 4500, 0, 1, 0, "Test Note"),
+                    (NULL, "water", "02-21", 6211, 1, 0, 0, "Test Note"),
+                    (NULL, "travel", "01-21", 8799, 1, 1, 1, "Test Note"),
+                    (NULL, "gas", "12-20", 999, 0, 0, 0, "Test Note")
                     """)
 
     def get_user(self, user_id: int) -> str:
@@ -85,9 +85,9 @@ class Database:
         """Add a bill to the database."""
 
         with self.conn:
-            self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :x_paid, :j_paid, :paid, :note)",
-                           {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "x_paid": bill.user1_paid,
-                            "j_paid": bill.user2_paid, "paid": bill.paid, "note": bill.note})
+            self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :user1_paid, :user2_paid, :paid, :note)",
+                           {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "user1_paid": bill.user1_paid,
+                            "user2_paid": bill.user2_paid, "paid": bill.paid, "note": bill.note})
 
     def remove_bill(self, bill: Any) -> None:
         """Remove a bill from the database."""
@@ -104,8 +104,8 @@ class Database:
         with self.conn:
             self.c.execute("""
                 UPDATE bills
-                SET x_paid = :user2_paid,
-                    j_paid = :user1_paid,
+                SET user1_paid = :user1_paid,
+                    user2_paid = :user2_paid,
                     paid = :paid,
                     note = :note
                 WHERE id = :id
@@ -163,9 +163,9 @@ class Database:
         """Get a list of bills owed by a given user."""
 
         if user == self.get_user(1).lower():
-            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
+            self.c.execute("SELECT * FROM bills WHERE user1_paid=False")
         else:
-            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
+            self.c.execute("SELECT * FROM bills WHERE user2_paid=False")
 
         return self._fetchall_and_convert()
 
@@ -173,9 +173,9 @@ class Database:
         """Get a total of the amount owed by a given user."""
 
         if user == self.get_user(1).lower():
-            self.c.execute("SELECT * FROM bills WHERE j_paid=False")
+            self.c.execute("SELECT * FROM bills WHERE user1_paid=False")
         else:
-            self.c.execute("SELECT * FROM bills WHERE x_paid=False")
+            self.c.execute("SELECT * FROM bills WHERE user2_paid=False")
 
         records = [NamedRecord(*record) for record in self.c.fetchall()]
 

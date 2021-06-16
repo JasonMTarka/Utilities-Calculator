@@ -202,30 +202,30 @@ class Application:
 
         if moreinfo_intent == "yes":
 
-            j_intent = self.input_handler(prompt=f"Has {self.user1_upper} paid?", destination="bill addition", utility=utility, boolean=True)
-            x_intent = self.input_handler(prompt=f"Has {self.user2_upper} paid?", destination="bill addition", utility=utility, boolean=True)
+            user1_intent = self.input_handler(prompt=f"Has {self.user1_upper} paid?", destination="bill addition", utility=utility, boolean=True)
+            user2_intent = self.input_handler(prompt=f"Has {self.user2_upper} paid?", destination="bill addition", utility=utility, boolean=True)
 
             print("Do you have any notes you'd like to make about this bill? (Press enter to skip)")
             note_intent = input()
             print("*****")
             print("Creating bill...")
 
-            if j_intent == "yes":
-                j_intent = True
+            if user1_intent == "yes":
+                user1_intent = True
             else:
-                j_intent = False
+                user1_intent = False
 
-            if x_intent == "yes":
-                x_intent = True
+            if user2_intent == "yes":
+                user2_intent = True
             else:
-                x_intent = False
+                user2_intent = False
 
-            if j_intent is True and x_intent is True:
+            if user1_intent is True and user2_intent is True:
                 paid_intent = True
             else:
                 paid_intent = False
 
-            bill = Bill(utility, date_intent, amount_intent, user1_paid=j_intent, user2_paid=x_intent, paid=paid_intent, note=note_intent)
+            bill = Bill(utility, date_intent, amount_intent, user1_paid=user1_intent, user2_paid=user2_intent, paid=paid_intent, note=note_intent)
 
         else:
             print("Creating bill...")
@@ -383,6 +383,7 @@ class Application:
         integer for integer inputs
         acceptable_inputs can be a tuple, list, or set (preferred b/c hashing) of valid inputs
         """
+
         if prompt:
             print(prompt)
         if kwargs.get('boolean'):

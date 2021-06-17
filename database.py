@@ -5,6 +5,8 @@ from bill import Bill
 
 
 class NamedRecord(NamedTuple):
+    """Store information about a single record in database."""
+
     Id: int
     utility: str
     date: str
@@ -16,6 +18,8 @@ class NamedRecord(NamedTuple):
 
 
 class Database:
+    """Interface to database in records.db."""
+
     def __init__(self, debug: bool = False, setup: bool = False, **kwargs: str) -> None:
         """Initialize database connection and establish cursor."""
 

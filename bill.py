@@ -1,6 +1,7 @@
 
 
 class Bill:
+    """Class which stores information about a single database record."""
 
     def __init__(self, utility: str, date: str, amount: int, user1_paid: bool = False, user2_paid: bool = False, paid: bool = False, note: str = "", primary_key: int = 1, **kwargs) -> None:
         """Create a bill object with the given values."""

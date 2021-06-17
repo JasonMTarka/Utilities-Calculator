@@ -14,6 +14,7 @@ You can see a list of command line arguments by passing in a '--help' or '-h' fl
 '''
 
 class Application:
+    """Class responsible for getting input from user and printing text to terminal."""
 
     def __init__(self, db: Database) -> None:
         """Initialize database, get user information, set utility menu and main menu options."""

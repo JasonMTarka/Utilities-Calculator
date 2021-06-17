@@ -134,3 +134,4 @@ records.db
 records.db-journal
 *.db
 bill_list.csv
+backups/dummy.txt

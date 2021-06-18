@@ -267,20 +267,21 @@ class Application:
         for record in records:
             print(record)
 
-        intent = input_handler(
-            prompt="Which bill would you like to remove?\nInput bill ID:",
-            destination="bill removal",
-            integer=True,
-            utility=utility)
+        intent = input_handler(self,
+                               prompt=("Which bill would you like to remove?\n"
+                                       "Input bill ID:"),
+                               destination="bill removal",
+                               integer=True,
+                               utility=utility)
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
-                intent = input_handler(
-                    prompt=f"Will you remove this bill?",
-                    destination="bill removal",
-                    boolean=True,
-                    utility=utility)
+                intent = input_handler(self,
+                                       prompt=f"Will you remove this bill?",
+                                       destination="bill removal",
+                                       boolean=True,
+                                       utility=utility)
 
                 if intent == "yes":
                     self.db.remove_bill(entry)
@@ -461,8 +462,9 @@ def main() -> None:
     debug = cmd_line_args.get("debug", False)
 
     if not os.path.isfile('records.db') and not debug:
-        print("No records file found.  Beginning first time setup.")
-        print("Enter the name of the first user:")
+        print(
+            "No records file found.  Beginning first time setup.\n"
+            "Enter the name of the first user:\n")
         user1 = input()
         print("Enter the name of the second user:")
         user2 = input()

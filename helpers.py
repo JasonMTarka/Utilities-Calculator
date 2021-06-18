@@ -112,33 +112,30 @@ def input_handler(app: "Application",
         try:
             intent = int(intent)
         except ValueError:
-            redirect(
-                app,
-                message="Please enter an integer.",
-                destination=destination,
-                utility=kwargs.get('utility'))
+            redirect(app,
+                     message="Please enter an integer.",
+                     destination=destination,
+                     utility=kwargs.get('utility'))
 
     if kwargs.get('acceptable_inputs'):
         acceptable_inputs = kwargs.get('acceptable_inputs', set())
         if intent not in acceptable_inputs:
-            redirect(
-                app,
-                message=error_msg,
-                destination=destination,
-                utility=kwargs.get('utility'))
+            redirect(app,
+                     message=error_msg,
+                     destination=destination,
+                     utility=kwargs.get('utility'))
 
     if kwargs.get('boolean'):
         if intent not in ('yes', 'no'):
-            redirect(
-                app,
-                message="Please enter 'yes' or 'no'.",
-                destination=destination,
-                utility=kwargs.get('utility'))
+            redirect(app,
+                     message="Please enter 'yes' or 'no'.",
+                     destination=destination,
+                     utility=kwargs.get('utility'))
 
     return intent
 
 
-def redirect(app,
+def redirect(app: "Application",
              message: Optional[str] = "Please enter a valid input.",
              destination: str = "main menu",
              **kwargs: Any) -> None:

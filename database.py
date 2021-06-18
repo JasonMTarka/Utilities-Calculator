@@ -20,7 +20,10 @@ class NamedRecord(NamedTuple):
 class Database:
     """Interface to database in records.db."""
 
-    def __init__(self, debug: bool = False, setup: bool = False, **kwargs: str) -> None:
+    def __init__(self,
+                 debug: bool = False,
+                 setup: bool = False,
+                 **kwargs: str) -> None:
         """Initialize database connection and establish cursor."""
 
         self.debug = debug
@@ -37,7 +40,7 @@ class Database:
             self.setup(kwargs)
 
     def setup(self, kwargs: dict) -> None:
-        """Set up a new database if records.db file not found or in debugging mode."""
+        """Set up a database if database not found or in debugging mode."""
 
         with self.conn:
             self.c.execute("""
@@ -59,8 +62,12 @@ class Database:
                     )""")
 
             self.c.execute("""
-                INSERT INTO users VALUES(NULL, :user1), (NULL, :user2)
-                """, {'user1': kwargs.get('user1'), 'user2': kwargs.get('user2')})
+                INSERT INTO users VALUES
+                (NULL, :user1),
+                (NULL, :user2)
+                """,
+                           {'user1': kwargs.get('user1'),
+                            'user2': kwargs.get('user2')})
 
             if self.debug is True:
                 self.c.execute("""
@@ -83,27 +90,44 @@ class Database:
         """Remove a utility and all associated bills."""
 
         with self.conn:
-            self.c.execute("DELETE FROM bills WHERE utility=:utility", {"utility": utility})
+            self.c.execute(
+                "DELETE FROM bills WHERE utility=:utility",
+                {"utility": utility})
 
     def add_bill(self, bill: Bill) -> None:
         """Add a bill to the database."""
 
         with self.conn:
-            self.c.execute("INSERT INTO bills VALUES (NULL, :utility, :date, :amount, :user1_paid, :user2_paid, :paid, :note)",
-                           {"utility": bill.utility, "date": bill.date, "amount": bill.amount, "user1_paid": bill.user1_paid,
-                            "user2_paid": bill.user2_paid, "paid": bill.paid, "note": bill.note})
+            self.c.execute("""
+                INSERT INTO bills VALUES
+                (NULL, :utility,
+                :date, :amount,
+                :user1_paid, :user2_paid,
+                :paid, :note)
+                """,
+                           {"utility": bill.utility,
+                            "date": bill.date,
+                            "amount": bill.amount,
+                            "user1_paid": bill.user1_paid,
+                            "user2_paid": bill.user2_paid,
+                            "paid": bill.paid,
+                            "note": bill.note})
 
     def remove_bill(self, bill: Any) -> None:
         """Remove a bill from the database."""
 
         with self.conn:
             try:
-                self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill.id})
+                self.c.execute(
+                    "DELETE FROM bills WHERE id=:id",
+                    {"id": bill.id})
             except AttributeError:
-                self.c.execute("DELETE FROM bills WHERE id=:id", {"id": bill})
+                self.c.execute(
+                    "DELETE FROM bills WHERE id=:id",
+                    {"id": bill})
 
     def pay_bill(self, bill: Bill) -> None:
-        """Pay a bill, with new values already set on Bill object sent from calculator."""
+        """Pay a bill with new values already set on Bill parameter."""
 
         with self.conn:
             self.c.execute("""
@@ -113,12 +137,18 @@ class Database:
                     paid = :paid,
                     note = :note
                 WHERE id = :id
-                """, {"user2_paid": bill.user2_paid, "user1_paid": bill.user1_paid, "paid": bill.paid, "note": bill.note, "id": bill.id})
+                """,
+                           {"user2_paid": bill.user2_paid,
+                            "user1_paid": bill.user1_paid,
+                            "paid": bill.paid,
+                            "note": bill.note,
+                            "id": bill.id})
 
     def get_all_records(self) -> list[Bill]:
         """Select all records in database."""
 
-        self.c.execute("SELECT * FROM bills")
+        self.c.execute(
+            "SELECT * FROM bills")
         return self._fetchall_and_convert()
 
     def get_record(self, bill: Union[int, Bill]) -> Any:
@@ -128,11 +158,15 @@ class Database:
             # First check that bill is a Bill object
             if TYPE_CHECKING:
                 assert isinstance(bill, Bill)
-            self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill.id})
+            self.c.execute(
+                "SELECT * FROM bills WHERE id=:id",
+                {"id": bill.id})
 
         except AttributeError:
             # Next check that bill is a bill ID
-            self.c.execute("SELECT * FROM bills WHERE id=:id", {"id": bill})
+            self.c.execute(
+                "SELECT * FROM bills WHERE id=:id",
+                {"id": bill})
 
         try:
             return self._convert_to_object(self.c.fetchone())
@@ -142,34 +176,41 @@ class Database:
     def get_utilities(self) -> list:
         """Return a list of all utilities present in the database."""
 
-        self.c.execute("SELECT DISTINCT utility FROM bills")
+        self.c.execute(
+            "SELECT DISTINCT utility FROM bills")
         return self.c.fetchall()
 
     def get_utility_record(self, utility: str) -> list[Bill]:
         """Get a list of bills associated with a provided utility."""
 
-        self.c.execute("SELECT * FROM bills WHERE utility=:utility", {"utility": utility})
+        self.c.execute(
+            "SELECT * FROM bills WHERE utility=:utility",
+            {"utility": utility})
         return self._fetchall_and_convert()
 
     def get_unpaid_bills(self) -> list[Bill]:
         """Get a list of all unpaid bills."""
 
-        self.c.execute("SELECT * FROM bills WHERE paid=False")
+        self.c.execute(
+            "SELECT * FROM bills WHERE paid=False")
         return self._fetchall_and_convert()
 
     def get_paid_bills(self) -> list[Bill]:
         """Get a list of all paid off bills."""
 
-        self.c.execute("SELECT * FROM bills WHERE paid=True")
+        self.c.execute(
+            "SELECT * FROM bills WHERE paid=True")
         return self._fetchall_and_convert()
 
     def get_bills_owed(self, user: str) -> list[Bill]:
         """Get a list of bills owed by a given user."""
 
         if user == self.get_user(1).lower():
-            self.c.execute("SELECT * FROM bills WHERE user1_paid=False")
+            self.c.execute(
+                "SELECT * FROM bills WHERE user1_paid=False")
         else:
-            self.c.execute("SELECT * FROM bills WHERE user2_paid=False")
+            self.c.execute(
+                "SELECT * FROM bills WHERE user2_paid=False")
 
         return self._fetchall_and_convert()
 
@@ -177,9 +218,11 @@ class Database:
         """Get a total of the amount owed by a given user."""
 
         if user == self.get_user(1).lower():
-            self.c.execute("SELECT * FROM bills WHERE user1_paid=False")
+            self.c.execute(
+                "SELECT * FROM bills WHERE user1_paid=False")
         else:
-            self.c.execute("SELECT * FROM bills WHERE user2_paid=False")
+            self.c.execute(
+                "SELECT * FROM bills WHERE user2_paid=False")
 
         records = [NamedRecord(*record) for record in self.c.fetchall()]
 
@@ -189,13 +232,22 @@ class Database:
         return total_owed
 
     def _fetchall_and_convert(self) -> list[Bill]:
-        """Return a list of Bills retrieved by self.c.fetchall() after a query."""
+        """Return a list of Bills retrieved after a query."""
 
-        return [self._convert_to_object(record) for record in self.c.fetchall()]
+        return (
+            [self._convert_to_object(record) for record in self.c.fetchall()])
 
     def _convert_to_object(self, record) -> Bill:
-        """Take data from a database entry and converts it to a Bill object for use in the main application."""
+        """Take a database entry and convert it to a Bill object."""
 
         named_record = NamedRecord(*record)
-        return Bill(named_record.utility, named_record.date, named_record.cost, user1_paid=named_record.user1_paid, user2_paid=named_record.user2_paid,
-                    paid=named_record.paid, note=named_record.note, primary_key=named_record.Id, user1=self.get_user(1), user2=self.get_user(2))
+        return Bill(named_record.utility,
+                    named_record.date,
+                    named_record.cost,
+                    user1_paid=named_record.user1_paid,
+                    user2_paid=named_record.user2_paid,
+                    paid=named_record.paid,
+                    note=named_record.note,
+                    primary_key=named_record.Id,
+                    user1=self.get_user(1),
+                    user2=self.get_user(2))

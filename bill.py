@@ -3,7 +3,16 @@
 class Bill:
     """Class which stores information about a single database record."""
 
-    def __init__(self, utility: str, date: str, amount: int, user1_paid: bool = False, user2_paid: bool = False, paid: bool = False, note: str = "", primary_key: int = 1, **kwargs) -> None:
+    def __init__(self,
+                 utility: str,
+                 date: str,
+                 amount: int,
+                 user1_paid: bool = False,
+                 user2_paid: bool = False,
+                 paid: bool = False,
+                 note: str = "",
+                 primary_key: int = 1,
+                 **kwargs) -> None:
         """Create a bill object with the given values."""
 
         self.utility = utility
@@ -37,7 +46,16 @@ class Bill:
         self.kwargs = kwargs
 
     def __repr__(self) -> str:
-        return f"Bill({self.utility}, {self.date}, {self.amount}, user1_paid={self.user1_paid}, user2_paid={self.user2_paid}, paid={self.paid}, note='{self.note}', primary_key={self.id})"
+        return (
+            "Bill("
+            f"{self.utility},"
+            f"{self.date},"
+            f"{self.amount},"
+            f"user1_paid={self.user1_paid},"
+            f"user2_paid={self.user2_paid},"
+            f"paid={self.paid},"
+            f"note='{self.note}',"
+            f"primary_key={self.id}")
 
     def __str__(self) -> str:
         if self.user1_paid is True:
@@ -60,7 +78,7 @@ class Bill:
             user2 = 'User2'
 
         return f"""
-Date: {self.date}  A {self.utility} bill for {self.amount} yen.
+Date: {self.date} A {self.utility} bill for {self.amount} yen.
 ID: {self.id}       {user1} has {user1_var} and {user2} has {user2_var}.
 
 Notes: {self.note}

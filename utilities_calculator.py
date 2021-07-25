@@ -50,7 +50,7 @@ class Application:
 
         os.system('cls')
         print(f"\nWelcome to {self.user1_upper}"
-              " and {self.user2_upper}'s utility calculator.\n"
+              f" and {self.user2_upper}'s utility calculator.\n"
               f"Today is {formatted_today()}")
         self.main_menu()
 

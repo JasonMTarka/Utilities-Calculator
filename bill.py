@@ -20,26 +20,29 @@ class Bill:
         self.owed_amount = int(amount) / 2
         self.date = date
 
-        if user2_paid == 1:
-            self.user2_paid = True
-        elif user2_paid == 0:
-            self.user2_paid = False
-        else:
-            self.user2_paid = user2_paid
+        match user2_paid:
+            case 1:
+                self.user2_paid = True
+            case 0:
+                self.user2_paid = False
+            case _:
+                self.user2_paid = user2_paid
 
-        if user1_paid == 1:
-            self.user1_paid = True
-        elif user1_paid == 0:
-            self.user1_paid = False
-        else:
-            self.user1_paid = user1_paid
+        match user1_paid:
+            case 1:
+                self.user1_paid = True
+            case 0:
+                self.user1_paid = False
+            case _:
+                self.user1_paid = user1_paid
 
-        if paid == 1:
-            self.paid = True
-        elif paid == 0:
-            self.paid = False
-        else:
-            self.paid = paid
+        match paid:
+            case 1:
+                self.paid = True
+            case 0:
+                self.paid = False
+            case _:
+                self.paid = paid   
 
         self.note = note
         self.id = primary_key

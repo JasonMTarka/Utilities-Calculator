@@ -3,39 +3,31 @@ import os
 
 from shutil import copy2
 from csv import writer
-from typing import Optional, Any
+from typing import Optional, Any, TypeAlias
 from datetime import datetime
 
 from database import Database
 
-if False:
-    # For forward-reference type-checking:
-    from UtilityCalculator import Application
-
-
 def cmd_line_arg_handler() -> dict:
     """Handle command line arguments."""
 
+    PYTHON_VERSION = "Python version: 3.10"
     opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
-
     cmd_line_args = {"debug": False}
 
     if opts:
-
         if "-h" in opts or "--help" in opts:
             print(
-                "Utilities Calculator by Jason Tarka"
-                "Accepted command line arguments:"
-                '"-v" or "--version": Display version information'
-                '"-b" or "--backup": Backup database'
-                '"-r" or "--restore": Restore database from backup'
-                '"-e" or "--export": Export a list of Bill objects '
-                "for use in database recovery."
-                '"-d" or "--debug": Enter debugging mode'
+                "Utilities Calculator by Jason Tarka\n"
+                "Accepted command line arguments:\n"
+                '"-v" or "--version": Display version information\n'
+                '"-b" or "--backup": Backup database\n'
+                '"-r" or "--restore": Restore database from backup\n'
+                '"-e" or "--export": Export a list of Bill objects\n'
+                "for use in database recovery.\n"
+                '"-d" or "--debug": Enter debugging mode\n'
             )
             sys.exit()
-
-        PYTHON_VERSION = "Python version: 3.9.2"
 
         if "-v" in opts or "--version" in opts:
             print("Application version: 1.1.2\n" f"{PYTHON_VERSION}")
@@ -88,7 +80,7 @@ def cmd_line_arg_handler() -> dict:
 
 
 def input_handler(
-    app: "Application",
+    app: TypeAlias = "Application",
     prompt: str = "",
     error_msg: str = "Please enter a valid input.",
     destination: str = "main menu",
@@ -109,11 +101,11 @@ def input_handler(
     intent: int | str = input().lower()
     print("****************************\n")
 
-    if intent == "main" or intent == "back":
-        app.main_menu()
-
-    if intent == "quit":
-        app.quit_program()
+    match intent:
+        case "main" | "back":
+            app.main_menu()
+        case "quit":
+            app.quit_program()
 
     if kwargs.get("integer"):
         try:
@@ -149,7 +141,7 @@ def input_handler(
 
 
 def redirect(
-    app: "Application",
+    app: TypeAlias = "Application",
     message: Optional[str] = "Please enter a valid input.",
     destination: str = "main menu",
     **kwargs: Any,
@@ -164,18 +156,15 @@ def redirect(
     if not utility:
         app.main_menu()
 
-    if destination == "bill payment":
-        app.pay_bill(utility)
-
-    elif destination == "bill addition":
-        app.add_bill(utility)
-
-    elif destination == "bill removal":
-        app.remove_bill(utility)
-
-    elif destination == "utility menu":
-        app.utility_menu(utility, display=kwargs.get("display"))
-
+    match destination:
+        case "bill payment":
+            app.pay_bill(utility)
+        case "bill addition":
+            app.add_bill(utility)
+        case "bill removal":
+            app.remove_bill(utility)
+        case "utility menu":
+            app.utility_menu(utility, display=kwargs.get("display"))
 
 def formatted_today() -> str:
     """Return a formatted version of today's date."""

@@ -465,17 +465,16 @@ class Application:
                         boolean=True,
                     )
 
-                    if intent == "yes":
-                        payment(entry, identity)
-                        redirect(self, message=None)
-
-                    elif intent == "no":
-                        redirect(self, message=None)
-
-                    else:
-                        redirect(
-                            self, destination="bill payment", utility=utility
-                        )
+                    match intent:
+                        case "yes":
+                            payment(entry, identity)
+                            redirect(self, message=None)
+                        case "no":
+                            redirect(self, message=None)
+                        case _:
+                            redirect(
+                                self, destination="bill payment", utility=utility
+                            )
 
             redirect(
                 self,

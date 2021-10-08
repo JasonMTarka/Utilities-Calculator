@@ -1,18 +1,18 @@
-
-
 class Bill:
     """Class which stores information about a single database record."""
 
-    def __init__(self,
-                 utility: str,
-                 date: str,
-                 amount: int,
-                 user1_paid: bool = False,
-                 user2_paid: bool = False,
-                 paid: bool = False,
-                 note: str = "",
-                 primary_key: int = 1,
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        utility: str,
+        date: str,
+        amount: int,
+        user1_paid: bool = False,
+        user2_paid: bool = False,
+        paid: bool = False,
+        note: str = "",
+        primary_key: int = 1,
+        **kwargs,
+    ) -> None:
         """Create a bill object with the given values."""
 
         self.utility = utility
@@ -55,7 +55,8 @@ class Bill:
             f"user2_paid={self.user2_paid},"
             f"paid={self.paid},"
             f"note='{self.note}',"
-            f"primary_key={self.id}")
+            f"primary_key={self.id}"
+        )
 
     def __str__(self) -> str:
         if self.user1_paid is True:
@@ -68,14 +69,14 @@ class Bill:
         else:
             user2_var = "not paid yet"
 
-        if self.kwargs.get('user1'):
-            user1 = self.kwargs.get('user1')
+        if self.kwargs.get("user1"):
+            user1 = self.kwargs.get("user1")
         else:
-            user1 = 'User1'
-        if self.kwargs.get('user2'):
-            user2 = self.kwargs.get('user2')
+            user1 = "User1"
+        if self.kwargs.get("user2"):
+            user2 = self.kwargs.get("user2")
         else:
-            user2 = 'User2'
+            user2 = "User2"
 
         return f"""
 Date: {self.date} A {self.utility} bill for {self.amount} yen.

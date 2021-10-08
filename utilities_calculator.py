@@ -5,13 +5,17 @@ from typing import TYPE_CHECKING
 from bill import Bill
 from menus import Menu
 from database import Database
-from helpers import (input_handler, redirect, formatted_today,
-                     cmd_line_arg_handler)
+from helpers import (
+    input_handler,
+    redirect,
+    formatted_today,
+    cmd_line_arg_handler,
+)
 
-'''
+"""
 You can see a list of command line arguments by
 passing '--help' or '-h' flag to the command line.
-'''
+"""
 
 
 class Application:
@@ -48,10 +52,12 @@ class Application:
     def start(self) -> None:
         """Display information on initial launch of application."""
 
-        os.system('cls')
-        print(f"\nWelcome to {self.user1_upper}"
-              f" and {self.user2_upper}'s utility calculator.\n"
-              f"Today is {formatted_today()}")
+        os.system("cls")
+        print(
+            f"\nWelcome to {self.user1_upper}"
+            f" and {self.user2_upper}'s utility calculator.\n"
+            f"Today is {formatted_today()}"
+        )
         self.main_menu()
 
     def quit_program(self) -> None:
@@ -65,16 +71,19 @@ class Application:
 
         self.menus.update_main_options()
         if self.db.debug is True:
-            print("****************************\n"
-                  "------DEBUGGING MODE!------")
-        print("****************************\n"
-              f"{self.user1_upper} currently owes "
-              f"{self.user_owes(1)} yen "
-              f"and {self.user2_upper} currently owes "
-              f"{self.user_owes(2)} yen.\n"
-              "You can examine a particular utility "
-              f"or either {self.user1_upper}"
-              f"or {self.user2_upper}'s payment history.\n")
+            print(
+                "****************************\n" "------DEBUGGING MODE!------"
+            )
+        print(
+            "****************************\n"
+            f"{self.user1_upper} currently owes "
+            f"{self.user_owes(1)} yen "
+            f"and {self.user2_upper} currently owes "
+            f"{self.user_owes(2)} yen.\n"
+            "You can examine a particular utility "
+            f"or either {self.user1_upper}"
+            f"or {self.user2_upper}'s payment history.\n"
+        )
 
         self.menus.print_main_menu()
 
@@ -82,20 +91,23 @@ class Application:
 
         intent = input_handler(
             self,
-            prompt=("\nYou can return to this page "
-                    "by entering 'main' at any point."
-                    "\nYou can also quit this program at any point "
-                    "by entering 'quit'."),
-            acceptable_inputs=acceptable_inputs)
+            prompt=(
+                "\nYou can return to this page "
+                "by entering 'main' at any point."
+                "\nYou can also quit this program at any point "
+                "by entering 'quit'."
+            ),
+            acceptable_inputs=acceptable_inputs,
+        )
 
         option = self.menus.main_options.get(intent, {})
-        option_func = option.get('func')
+        option_func = option.get("func")
         if TYPE_CHECKING:
             assert callable(option_func)
 
         try:
             # Handle menu requests which require an argument
-            option_func(option.get('arg'))
+            option_func(option.get("arg"))
 
         except TypeError:
             # Handle menu requests which do not require an argument
@@ -105,8 +117,8 @@ class Application:
         """Display total owed and unpaid bills and return to main menu."""
 
         print(
-            f"{user[0].upper() + user[1:]} owes",
-            self.db.get_total_owed(user))
+            f"{user[0].upper() + user[1:]} owes", self.db.get_total_owed(user)
+        )
 
         print("Here are their unpaid bills:")
         for entry in self.db.get_bills_owed(user):
@@ -128,12 +140,13 @@ class Application:
         acceptable_inputs = set(self.menus.utility_options.keys())
         intent = input_handler(
             self,
-            destination='utility menu',
+            destination="utility menu",
             acceptable_inputs=acceptable_inputs,
             utility=utility,
-            display=False)
+            display=False,
+        )
 
-        option_func = self.menus.utility_options.get(intent, {}).get('func')
+        option_func = self.menus.utility_options.get(intent, {}).get("func")
         if TYPE_CHECKING:
             assert callable(option_func)
         option_func(utility)
@@ -142,8 +155,8 @@ class Application:
         """Add a new utility to the database."""
 
         intent = input_handler(
-            self,
-            prompt="What is the name of your new utility?")
+            self, prompt="What is the name of your new utility?"
+        )
         self.add_bill(intent)
 
     def remove_utility(self) -> None:
@@ -157,20 +170,21 @@ class Application:
             self,
             prompt=(
                 "WARNING: removing a utility "
-                "will also remove all bills associated with that utility!"))
+                "will also remove all bills associated with that utility!"
+            ),
+        )
 
         removal_intent = input_handler(
             self,
             prompt=f"Are you sure you want to remove {intent}?",
-            boolean=True)
+            boolean=True,
+        )
 
         if removal_intent:
             self.db.remove_utility(intent)
-            redirect(self,
-                     message=f"{intent} has been removed.")
+            redirect(self, message=f"{intent} has been removed.")
         else:
-            redirect(self,
-                     message=None)
+            redirect(self, message=None)
 
     def add_bill(self, utility: str) -> None:
         """Add a bill to the database."""
@@ -180,20 +194,24 @@ class Application:
             prompt="\nHow much is the bill for?\nEnter the amount in yen:",
             destination="bill addition",
             integer=True,
-            utility=utility)
+            utility=utility,
+        )
 
-        print("What month(s) is this bill for?\n"
-              "Enter the bill date like the following:"
-              " '04-21' for April 9th.\n"
-              "In the event that there is more than one month listed,"
-              " please list with a ',' between the dates.")
+        print(
+            "What month(s) is this bill for?\n"
+            "Enter the bill date like the following:"
+            " '04-21' for April 9th.\n"
+            "In the event that there is more than one month listed,"
+            " please list with a ',' between the dates."
+        )
 
         date_intent = input_handler(self)
 
         moreinfo_intent = input_handler(
             self,
             prompt="If you want to add more information, type 'yes'. "
-            " Otherwise, press any key to continue.")
+            " Otherwise, press any key to continue.",
+        )
 
         if moreinfo_intent == "yes":
 
@@ -202,17 +220,21 @@ class Application:
                 prompt=f"Has {self.user1_upper} paid?",
                 destination="bill addition",
                 utility=utility,
-                boolean=True)
+                boolean=True,
+            )
 
             user2_intent = input_handler(
                 self,
                 prompt=f"Has {self.user2_upper} paid?",
                 destination="bill addition",
                 utility=utility,
-                boolean=True)
+                boolean=True,
+            )
 
-            print("Do you have any notes you'd like to make about this bill? "
-                  "(Press enter to skip)")
+            print(
+                "Do you have any notes you'd like to make about this bill? "
+                "(Press enter to skip)"
+            )
             note_intent = input()
             print("*****")
             print("Creating bill...")
@@ -232,26 +254,27 @@ class Application:
             else:
                 paid_intent = False
 
-            bill = Bill(utility,
-                        date_intent,
-                        amount_intent,
-                        user1_paid=user1_intent,
-                        user2_paid=user2_intent,
-                        paid=paid_intent,
-                        note=note_intent)
+            bill = Bill(
+                utility,
+                date_intent,
+                amount_intent,
+                user1_paid=user1_intent,
+                user2_paid=user2_intent,
+                paid=paid_intent,
+                note=note_intent,
+            )
 
         else:
             print("Creating bill...")
 
-            bill = Bill(utility,
-                        date_intent,
-                        amount_intent)
+            bill = Bill(utility, date_intent, amount_intent)
 
         self.db.add_bill(bill)
         print(
             "Bill has been successfully created "
             f"and added to the {bill.utility} bill record!\n"
-            "Returning to main menu...")
+            "Returning to main menu..."
+        )
         self.main_menu()
 
     def remove_bill(self, utility: str) -> None:
@@ -259,42 +282,47 @@ class Application:
 
         records = self.db.get_utility_record(utility)
         if not records:
-            redirect(self,
-                     message=f"There are no bills in {utility}.",
-                     destination="utility menu",
-                     utility=utility)
+            redirect(
+                self,
+                message=f"There are no bills in {utility}.",
+                destination="utility menu",
+                utility=utility,
+            )
 
         for record in records:
             print(record)
 
-        intent = input_handler(self,
-                               prompt=("Which bill would you like to remove?\n"
-                                       "Input bill ID:"),
-                               destination="bill removal",
-                               integer=True,
-                               utility=utility)
+        intent = input_handler(
+            self,
+            prompt=("Which bill would you like to remove?\n" "Input bill ID:"),
+            destination="bill removal",
+            integer=True,
+            utility=utility,
+        )
 
         for entry in records:
             if entry.id == intent:
                 print(entry)
-                intent = input_handler(self,
-                                       prompt=f"Will you remove this bill?",
-                                       destination="bill removal",
-                                       boolean=True,
-                                       utility=utility)
+                intent = input_handler(
+                    self,
+                    prompt=f"Will you remove this bill?",
+                    destination="bill removal",
+                    boolean=True,
+                    utility=utility,
+                )
 
                 if intent == "yes":
                     self.db.remove_bill(entry)
-                    redirect(self,
-                             message=None)
+                    redirect(self, message=None)
                 else:
-                    redirect(self,
-                             message="Returning to main menu.")
+                    redirect(self, message="Returning to main menu.")
 
-        redirect(self,
-                 message="The input bill ID could not be found.",
-                 destination="bill removal",
-                 utility=utility)
+        redirect(
+            self,
+            message="The input bill ID could not be found.",
+            destination="bill removal",
+            utility=utility,
+        )
 
     def check_record(self, utility: str) -> None:
         """Print all bills under a given utility."""
@@ -307,10 +335,12 @@ class Application:
 
         records = self.db.get_utility_record(utility)
         if not records:
-            redirect(self,
-                     message=f"There are no bills in {utility}.",
-                     destination="utility menu",
-                     utility=utility)
+            redirect(
+                self,
+                message=f"There are no bills in {utility}.",
+                destination="utility menu",
+                utility=utility,
+            )
 
         checker = False
         for entry in records:
@@ -318,10 +348,12 @@ class Application:
                 checker = True
                 print(entry)
         if not checker:
-            redirect(self,
-                     message=f"You have no unpaid bills in {utility}.",
-                     destination="utility menu",
-                     utility=utility)
+            redirect(
+                self,
+                message=f"You have no unpaid bills in {utility}.",
+                destination="utility menu",
+                utility=utility,
+            )
 
         self.utility_menu(utility, display=False)
 
@@ -333,16 +365,20 @@ class Application:
 
             if user == self.user1:
                 bill.user1_paid = True
-                bill.note += (f"\n{self.user1_upper} paid {bill.owed_amount} "
-                              f"for bill (ID {bill.id}) "
-                              f"on {formatted_today()}, "
-                              "paying off their portion of the bill.")
+                bill.note += (
+                    f"\n{self.user1_upper} paid {bill.owed_amount} "
+                    f"for bill (ID {bill.id}) "
+                    f"on {formatted_today()}, "
+                    "paying off their portion of the bill."
+                )
             else:
                 bill.user2_paid = True
-                bill.note += (f"\n{self.user2_upper} paid {bill.owed_amount} "
-                              f"for bill (ID {bill.id}) "
-                              f"on {formatted_today()}, "
-                              "paying off their portion of the bill.")
+                bill.note += (
+                    f"\n{self.user2_upper} paid {bill.owed_amount} "
+                    f"for bill (ID {bill.id}) "
+                    f"on {formatted_today()}, "
+                    "paying off their portion of the bill."
+                )
 
             if bill.user1_paid is True and bill.user2_paid is True:
                 bill.paid = True
@@ -356,18 +392,23 @@ class Application:
 
         records = self.db.get_utility_record(utility)
         if not records:
-            redirect(self,
-                     message=f"There are no bills in {utility}.",
-                     destination="utility menu",
-                     utility=utility)
+            redirect(
+                self,
+                message=f"There are no bills in {utility}.",
+                destination="utility menu",
+                utility=utility,
+            )
 
         identity = input_handler(
             self,
-            prompt=("Who are you?\n"
-                    f"Enter '{self.user1_upper}' or '{self.user2_upper}'."),
+            prompt=(
+                "Who are you?\n"
+                f"Enter '{self.user1_upper}' or '{self.user2_upper}'."
+            ),
             destination="bill payment",
             acceptable_inputs={self.user1, self.user2},
-            utility=utility)
+            utility=utility,
+        )
 
         if identity == self.user1:
             collector = []
@@ -377,8 +418,7 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                redirect(self,
-                         message=None)
+                redirect(self, message=None)
 
             for entry in collector:
                 print(entry)
@@ -391,20 +431,22 @@ class Application:
 
             if len(collector) == 0:
                 print("You don't have any bills to pay.")
-                redirect(self,
-                         message=None)
+                redirect(self, message=None)
 
             for entry in collector:
                 print(entry)
 
         intent = input_handler(
             self,
-            prompt=("Which bill would you like to pay?\n"
-                    "You can pay multiple bills at once "
-                    "by entering multiple IDs separated by a space.\n"
-                    "Enter the ID:"),
+            prompt=(
+                "Which bill would you like to pay?\n"
+                "You can pay multiple bills at once "
+                "by entering multiple IDs separated by a space.\n"
+                "Enter the ID:"
+            ),
             destination="bill payment",
-            utility=utility)
+            utility=utility,
+        )
 
         intent_list = intent.split(" ")
 
@@ -414,30 +456,33 @@ class Application:
                 if entry.id == int(intent):
                     intent = input_handler(
                         self,
-                        prompt=(f"{entry}\nYou owe {entry.owed_amount} yen\n"
-                                "Will you pay your bill?"),
+                        prompt=(
+                            f"{entry}\nYou owe {entry.owed_amount} yen\n"
+                            "Will you pay your bill?"
+                        ),
                         destination="bill payment",
                         utility=utility,
-                        boolean=True)
+                        boolean=True,
+                    )
 
                     if intent == "yes":
                         payment(entry, identity)
-                        redirect(self,
-                                 message=None)
+                        redirect(self, message=None)
 
                     elif intent == "no":
-                        redirect(self,
-                                 message=None)
+                        redirect(self, message=None)
 
                     else:
-                        redirect(self,
-                                 destination="bill payment",
-                                 utility=utility)
+                        redirect(
+                            self, destination="bill payment", utility=utility
+                        )
 
-            redirect(self,
-                     message="The inputted bill ID could not be found.",
-                     destination="bill payment",
-                     utility=utility)
+            redirect(
+                self,
+                message="The inputted bill ID could not be found.",
+                destination="bill payment",
+                utility=utility,
+            )
 
         # Paying by multiple IDs
         elif len(intent_list) > 1:
@@ -446,13 +491,10 @@ class Application:
                     if int(id_intent) == entry.id:
                         payment(entry, identity)
 
-            redirect(self,
-                     message=None)
+            redirect(self, message=None)
 
         else:
-            redirect(self,
-                     destination="bill payment",
-                     utility=utility)
+            redirect(self, destination="bill payment", utility=utility)
 
 
 def main() -> None:
@@ -461,10 +503,11 @@ def main() -> None:
     cmd_line_args = cmd_line_arg_handler()
     debug = cmd_line_args.get("debug", False)
 
-    if not os.path.isfile('records.db') and not debug:
+    if not os.path.isfile("records.db") and not debug:
         print(
             "No records file found.  Beginning first time setup.\n"
-            "Enter the name of the first user:\n")
+            "Enter the name of the first user:\n"
+        )
         user1 = input()
         print("Enter the name of the second user:")
         user2 = input()

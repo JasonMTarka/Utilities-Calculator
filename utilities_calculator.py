@@ -18,6 +18,14 @@ passing '--help' or '-h' flag to the command line.
 """
 
 
+class Destinations:
+    """Defines menu pages."""
+    UTILITY_MENU = "utility menu"
+    BILL_ADDITION = "bill addition"
+    BILL_PAYMENT = "bill payment"
+    BILL_REMOVAL = "bill removal"
+
+
 class Application:
     """Class for getting input from user and printing text to terminal."""
 
@@ -140,7 +148,7 @@ class Application:
         acceptable_inputs = set(self.menus.utility_options.keys())
         intent = input_handler(
             self,
-            destination="utility menu",
+            destination=Destinations.UTILITY_MENU,
             acceptable_inputs=acceptable_inputs,
             utility=utility,
             display=False,
@@ -192,7 +200,7 @@ class Application:
         amount_intent = input_handler(
             self,
             prompt="\nHow much is the bill for?\nEnter the amount in yen:",
-            destination="bill addition",
+            destination=Destinations.BILL_ADDITION,
             integer=True,
             utility=utility,
         )
@@ -218,7 +226,7 @@ class Application:
             user1_intent = input_handler(
                 self,
                 prompt=f"Has {self.user1_upper} paid?",
-                destination="bill addition",
+                destination=Destinations.BILL_ADDITION,
                 utility=utility,
                 boolean=True,
             )
@@ -226,7 +234,7 @@ class Application:
             user2_intent = input_handler(
                 self,
                 prompt=f"Has {self.user2_upper} paid?",
-                destination="bill addition",
+                destination=Destinations.BILL_ADDITION,
                 utility=utility,
                 boolean=True,
             )
@@ -285,7 +293,7 @@ class Application:
             redirect(
                 self,
                 message=f"There are no bills in {utility}.",
-                destination="utility menu",
+                destination=Destinations.UTILITY_MENU,
                 utility=utility,
             )
 
@@ -295,7 +303,7 @@ class Application:
         intent = input_handler(
             self,
             prompt=("Which bill would you like to remove?\n" "Input bill ID:"),
-            destination="bill removal",
+            destination=Destinations.BILL_REMOVAL,
             integer=True,
             utility=utility,
         )
@@ -306,7 +314,7 @@ class Application:
                 intent = input_handler(
                     self,
                     prompt=f"Will you remove this bill?",
-                    destination="bill removal",
+                    destination=Destinations.BILL_REMOVAL,
                     boolean=True,
                     utility=utility,
                 )
@@ -320,7 +328,7 @@ class Application:
         redirect(
             self,
             message="The input bill ID could not be found.",
-            destination="bill removal",
+            destination=Destinations.BILL_REMOVAL,
             utility=utility,
         )
 
@@ -338,7 +346,7 @@ class Application:
             redirect(
                 self,
                 message=f"There are no bills in {utility}.",
-                destination="utility menu",
+                destination=Destinations.UTILITY_MENU,
                 utility=utility,
             )
 
@@ -351,7 +359,7 @@ class Application:
             redirect(
                 self,
                 message=f"You have no unpaid bills in {utility}.",
-                destination="utility menu",
+                destination=Destinations.UTILITY_MENU,
                 utility=utility,
             )
 
@@ -395,7 +403,7 @@ class Application:
             redirect(
                 self,
                 message=f"There are no bills in {utility}.",
-                destination="utility menu",
+                destination=Destinations.UTILITY_MENU,
                 utility=utility,
             )
 
@@ -405,7 +413,7 @@ class Application:
                 "Who are you?\n"
                 f"Enter '{self.user1_upper}' or '{self.user2_upper}'."
             ),
-            destination="bill payment",
+            destination=Destinations.BILL_PAYMENT,
             acceptable_inputs={self.user1, self.user2},
             utility=utility,
         )
@@ -444,7 +452,7 @@ class Application:
                 "by entering multiple IDs separated by a space.\n"
                 "Enter the ID:"
             ),
-            destination="bill payment",
+            destination=Destinations.BILL_PAYMENT,
             utility=utility,
         )
 
@@ -460,7 +468,7 @@ class Application:
                             f"{entry}\nYou owe {entry.owed_amount} yen\n"
                             "Will you pay your bill?"
                         ),
-                        destination="bill payment",
+                        destination=Destinations.BILL_PAYMENT,
                         utility=utility,
                         boolean=True,
                     )
@@ -473,13 +481,13 @@ class Application:
                             redirect(self, message=None)
                         case _:
                             redirect(
-                                self, destination="bill payment", utility=utility
+                                self, destination=Destinations.BILL_PAYMENT, utility=utility
                             )
 
             redirect(
                 self,
                 message="The inputted bill ID could not be found.",
-                destination="bill payment",
+                destination=Destinations.BILL_PAYMENT,
                 utility=utility,
             )
 
@@ -493,7 +501,7 @@ class Application:
             redirect(self, message=None)
 
         else:
-            redirect(self, destination="bill payment", utility=utility)
+            redirect(self, destination=Destinations.BILL_PAYMENT, utility=utility)
 
 
 def main() -> None:

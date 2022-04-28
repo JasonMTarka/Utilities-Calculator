@@ -57,6 +57,22 @@ class Application:
         else:
             return self.db.get_total_owed(self.user2)
 
+    def final_owed(self) -> str:
+        """Amount to pay and to who."""
+        amount = self.user_owes(1) - self.user_owes(2)
+        if amount == 0:
+            return "Neither user owes the other anything at this time."
+
+        if amount > 0:
+            more_owed_user = self.user1_upper
+            less_owed_user = self.user2_upper
+        elif amount < 0:
+            more_owed_user = self.user2_upper
+            less_owed_user = self.user1_upper
+            amount = abs(amount)
+
+        return f"{more_owed_user} owes {less_owed_user} {round(amount)} yen."
+
     def start(self) -> None:
         """Display information on initial launch of application."""
 
@@ -88,6 +104,7 @@ class Application:
             f"{self.user_owes(1)} yen "
             f"and {self.user2_upper} currently owes "
             f"{self.user_owes(2)} yen.\n"
+            f"{self.final_owed()}\n"
             "You can examine a particular utility "
             f"or either {self.user1_upper}"
             f"or {self.user2_upper}'s payment history.\n"

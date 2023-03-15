@@ -106,7 +106,7 @@ class Application:
             f"{self.user_owes(2)} yen.\n"
             f"{self.final_owed()}\n"
             "You can examine a particular utility "
-            f"or either {self.user1_upper}"
+            f"or either {self.user1_upper} "
             f"or {self.user2_upper}'s payment history.\n"
         )
 
